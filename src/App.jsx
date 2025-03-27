@@ -1,35 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import './App.css';
+import Login from './components/Login/Login';
+import Register from './components/Register/Register';
+import { useState } from 'react';
+import RecoverPassword from './components/RecoverPassword/RecoverPassword'; // Asegúrate de tener este componente creado
 
 function App() {
-  const [count, setCount] = useState(0)
+  // Estado para controlar si se muestra el login, registro o recuperación de contraseña
+  const [showRegister, setShowRegister] = useState(false);
+  const [showRecover, setShowRecover] = useState(false);
+
+  // Función para manejar la navegación al registro
+  const handleNavigateToRegister = () => {
+    setShowRegister(true); // Muestra el componente de registro
+    setShowRecover(false); // Asegurarse de que la pantalla de recuperación de contraseña no se muestre
+  };
+
+  // Función para manejar la navegación a la recuperación de contraseña
+  const navigateToRecover = () => {
+    setShowRecover(true);
+    setShowRegister(false); // Asegurarse de que la pantalla de registro no se muestre
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="App">
+      <header className="App-header">
+        <h1>Mi aplicación</h1>
+
+        {/* Si showRecover es true, mostramos el componente de recuperación de contraseña */}
+        {showRecover ? (
+          <RecoverPassword />
+        ) : (
+          // Si showRegister es true, mostramos el componente Register, si no, mostramos Login
+          !showRegister ? (
+            <Login onNavigateToRegister={handleNavigateToRegister} onNavigateToRecover={navigateToRecover} />
+          ) : (
+            <Register />
+          )
+        )}
+      </header>
+    </div>
+  );
 }
 
-export default App
+export default App;
