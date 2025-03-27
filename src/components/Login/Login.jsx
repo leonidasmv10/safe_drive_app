@@ -28,7 +28,7 @@ export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
 
     try {
       // Enviar la petición POST al servidor
-      const response = await fetch('http://localhost:8000/api/login/', {
+      const response = await fetch('http://localhost:8000/user/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
