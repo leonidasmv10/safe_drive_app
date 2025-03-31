@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
 
-export default function Register() {
+export default function Register({ onNavigateToLogin }) {
   // Estados para los campos del formulario
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); // Para mostrar mensajes de error
-  const [loading, setLoading] = useState(false); // Para manejar el estado de carga
-
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [preferredAlertType, setPreferredAlertType] = useState('visual');
+  const [vehicleType, setVehicleType] = useState('car');
+  const [subscription, setSubscription] = useState('free');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   // Manejar los cambios en los campos del formulario
   const userData = (e) => {
     const { id, value } = e.target;
-    if (id === 'name') {
-      setName(value);
-    } else if (id === 'email') {
-      setEmail(value);
+
+    if (id === 'username') {
+      setUsername(value);
     } else if (id === 'password') {
       setPassword(value);
+    } else if (id === 'fullName') {
+      setFullName(value);
+    } else if (id === 'phoneNumber') {
+      setPhoneNumber(value);
+    } else if (id === 'preferredAlertType') {
+      setPreferredAlertType(value);
+    } else if (id === 'vehicleType') {
+      setVehicleType(value);
+    } else if (id === 'subscription') {
+      setSubscription(value);
     }
   };
 
@@ -27,7 +39,18 @@ export default function Register() {
     setLoading(true); // Activar el estado de carga
 
     // Crear el objeto con los datos del formulario
-    const userDataObj = { name, email, password };
+    const userDataObj = {
+      username,
+      password,
+      profile: {
+        full_name: fullName,
+        phone_number: phoneNumber,
+        preferred_alert_type: preferredAlertType,
+        vehicle_type: vehicleType,
+        suscription: subscription,
+      },
+    };
+    console.log(userDataObj);
 
     try {
       // Enviar la petición POST al servidor
@@ -44,6 +67,9 @@ export default function Register() {
       if (response.ok) {
         // Si la respuesta es exitosa, proceder a lo que quieras (redirección, etc.)
         alert('Registro exitoso');
+         // Vaciar los campos del formulario
+         onNavigateToLogin();
+      
       } else {
         // Si no es exitosa, mostrar un mensaje de error
         setError(result.message || 'Hubo un error en el registro');
@@ -53,6 +79,7 @@ export default function Register() {
       setError('Hubo un error al conectar con el servidor');
     } finally {
       setLoading(false); // Desactivar el estado de carga
+      
     }
   };
 
@@ -61,34 +88,43 @@ export default function Register() {
       <h2>Registro</h2>
       <form onSubmit={userSubmit}>
         <div>
-          <label htmlFor="name">Nombre</label>
-          <input
-            type="text"
-            id="name"
-            value={name}
-            onChange={userData}
-            required
-          />
+          <label>Usuario</label>
+          <input type="text" id="username" value={username} onChange={userData} required />
         </div>
         <div>
-          <label htmlFor="email">Correo electrónico</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={userData}
-            required
-          />
+          <label>Contraseña</label>
+          <input type="password" id="password" value={password} onChange={userData} required />
         </div>
         <div>
-          <label htmlFor="password">Contraseña</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={userData}
-            required
-          />
+          <label>Nombre Completo</label>
+          <input type="text" id="fullName" value={fullName} onChange={userData} required />
+        </div>
+        <div>
+          <label>Número de Teléfono</label>
+          <input type="text" id="phoneNumber" value={phoneNumber} onChange={userData} required />
+        </div>
+        <div>
+          <label>Alerta</label>
+          <select id="preferredAlertType" value={preferredAlertType} onChange={userData}>
+            <option value="visual">Visual</option>
+            <option value="audio">Audio</option>
+          </select>
+        </div>
+        <div>
+          <label>Vehículo</label>
+          <select id="vehicleType" value={vehicleType} onChange={userData}>
+            <option value="car">Coche</option>
+            <option value="motorcycle">Moto</option>
+            <option value="van">Furgoneta</option>
+            <option value="truck">Camión</option>
+          </select>
+        </div>
+        <div>
+          <label>Suscripción</label>
+          <select id="subscription" value={subscription} onChange={userData}>
+            <option value="free">Gratis</option>
+            <option value="premium">Premium</option>
+          </select>
         </div>
         <button type="submit" disabled={loading}>
           {loading ? 'Registrando...' : 'Registrarse'}
