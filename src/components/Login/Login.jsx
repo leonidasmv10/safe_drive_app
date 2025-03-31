@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
   // Estado para los campos del formulario
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(''); // Para mostrar mensajes de error
   const [loading, setLoading] = useState(false); // Para manejar el estado de carga
@@ -10,8 +10,8 @@ export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
   // Función para manejar el cambio en los campos de input
   const userData = (e) => {
     const { id, value } = e.target;
-    if (id === 'email') {
-      setEmail(value);
+    if (id === 'username') {
+      setUsername(value);
     } else if (id === 'password') {
       setPassword(value);
     }
@@ -24,7 +24,8 @@ export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
     setLoading(true); // Activar el estado de carga
 
     // Crear el objeto con los datos del formulario
-    const userData = { email, password };
+    const userData = { username, password };
+    console.log(userData);
 
     try {
       // Enviar la petición POST al servidor
@@ -58,11 +59,11 @@ export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
       <h2>Iniciar sesión</h2>
       <form onSubmit={userSubmit}>
         <div>
-          <label>Correo electrónico</label>
+          <label>Usuario</label>
           <input
-            type="email"
-            id="email"
-            value={email}
+            type="text"
+            id="username"
+            value={username}
             onChange={userData}
             required
           />

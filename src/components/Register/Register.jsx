@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 export default function Register({ onNavigateToLogin }) {
   // Estados para los campos del formulario
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState(''); // Estado para email
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -11,12 +12,15 @@ export default function Register({ onNavigateToLogin }) {
   const [subscription, setSubscription] = useState('free');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
   // Manejar los cambios en los campos del formulario
   const userData = (e) => {
     const { id, value } = e.target;
 
     if (id === 'username') {
       setUsername(value);
+    } else if (id === 'email') {
+      setEmail(value); // Actualiza el estado para el email
     } else if (id === 'password') {
       setPassword(value);
     } else if (id === 'fullName') {
@@ -41,6 +45,7 @@ export default function Register({ onNavigateToLogin }) {
     // Crear el objeto con los datos del formulario
     const userDataObj = {
       username,
+      email, // Incluimos el email en el objeto de datos
       password,
       profile: {
         full_name: fullName,
@@ -67,9 +72,8 @@ export default function Register({ onNavigateToLogin }) {
       if (response.ok) {
         // Si la respuesta es exitosa, proceder a lo que quieras (redirección, etc.)
         alert('Registro exitoso');
-         // Vaciar los campos del formulario
-         onNavigateToLogin();
-      
+        // Vaciar los campos del formulario
+        onNavigateToLogin();
       } else {
         // Si no es exitosa, mostrar un mensaje de error
         setError(result.message || 'Hubo un error en el registro');
@@ -79,7 +83,6 @@ export default function Register({ onNavigateToLogin }) {
       setError('Hubo un error al conectar con el servidor');
     } finally {
       setLoading(false); // Desactivar el estado de carga
-      
     }
   };
 
@@ -90,6 +93,10 @@ export default function Register({ onNavigateToLogin }) {
         <div>
           <label>Usuario</label>
           <input type="text" id="username" value={username} onChange={userData} required />
+        </div>
+        <div>
+          <label>Email</label> {/* Campo para el email */}
+          <input type="email" id="email" value={email} onChange={userData} required />
         </div>
         <div>
           <label>Contraseña</label>
