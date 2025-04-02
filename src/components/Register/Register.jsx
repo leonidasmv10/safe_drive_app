@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 
-export default function Register({ onNavigateToLogin }) {
+export default function Register() {
+  const navigate = useNavigate();
   // Estados para los campos del formulario
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState(''); // Estado para email
@@ -73,7 +75,7 @@ export default function Register({ onNavigateToLogin }) {
         // Si la respuesta es exitosa, proceder a lo que quieras (redirección, etc.)
         alert('Registro exitoso');
         // Vaciar los campos del formulario
-        onNavigateToLogin();
+        navigate("/login");
       } else {
         // Si no es exitosa, mostrar un mensaje de error
         setError(result.message || 'Hubo un error en el registro');

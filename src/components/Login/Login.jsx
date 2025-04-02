@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import {SmileIcon, KeyIcon} from '@/components/Icons/Icons'
+import { useNavigate } from "react-router-dom";
 
-
-export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
+export default function Login({}) {
+  const navigate = useNavigate();
   // Estado para los campos del formulario
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -102,10 +103,10 @@ export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
       {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
 
       {/* Botón para ir al registro */}
-      <button onClick={onNavigateToRegister}>¿No tienes cuenta? Regístrate</button>
+      <button onClick={() => navigate("/register")}>¿No tienes cuenta? Regístrate</button>
       
        {/* Botón para ir a la recuperación de contraseña */}
-       <button onClick={onNavigateToRecover} style={{ marginTop: '10px' }}>
+       <button onClick={() => navigate("/recover-password")} style={{ marginTop: '10px' }}>
         ¿Olvidaste tu contraseña?
       </button>
     </div>

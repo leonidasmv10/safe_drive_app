@@ -1,47 +1,29 @@
 import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Importamos React Router
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
-import { useState } from 'react';
-import RecoverPassword from './components/RecoverPassword/RecoverPassword'; // Asegúrate de tener este componente creado
-import Layout from "./Layout";
+import RecoverPassword from './components/RecoverPassword/RecoverPassword';
+import ResetPassword from './components/ResetPassword/ResetPassword'; // Asegúrate de tener esta página
+import Layout from './Layout';
+
 function App() {
-  // Estado para controlar si se muestra el login, registro o recuperación de contraseña
-  const [showRegister, setShowRegister] = useState(false);
-  const [showRecover, setShowRecover] = useState(false);
-
-  // Función para manejar la navegación al registro
-  const handleNavigateToRegister = () => {
-    setShowRegister(true); // Muestra el componente de registro
-    setShowRecover(false); // Asegurarse de que la pantalla de recuperación de contraseña no se muestre
-  };
-
-  const handleNavigateToLogin = () => {
-    setShowRegister(false);
-    setShowRecover(false);
-  };
-
-  // Función para manejar la navegación a la recuperación de contraseña
-  const navigateToRecover = () => {
-    setShowRecover(true);
-    setShowRegister(false); // Asegurarse de que la pantalla de registro no se muestre
-  };
-
   return (
-  <Layout>
-    <div className="App">
-      <header className="App-header">
-        <h1>Mi aplicación</h1>
+    <Router> {/* Envolvemos la app en Router */}
+      <Layout>
+        <div className="App">
+          <header className="App-header">
+            <h1>Mi aplicación</h1>
 
-        {showRecover ? (
-          <RecoverPassword />
-        ) : showRegister ? (
-          <Register onNavigateToLogin={handleNavigateToLogin} />
-        ) : (
-          <Login onNavigateToRegister={handleNavigateToRegister} onNavigateToRecover={navigateToRecover} />
-        )}
-      </header>
-    </div>
-    </Layout>
+            <Routes> {/* Aquí definimos las rutas */}
+              <Route path="/" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/recover-password" element={<RecoverPassword />} />
+              <Route path="/reset-password/:uidb64/:token" element={<ResetPassword />} />
+            </Routes>
+          </header>
+        </div>
+      </Layout>
+    </Router>
   );
 }
 
