@@ -4,13 +4,20 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --primary-color: #8E2FF4;
+  --secondary-color: #EDCEFF;
+  --gray: #AEAEAE;
+  --white: #FFFFFF;
+  --white-background: #F2F2F7;
+  --black: #202020;
+  
+
 }
 
 a {
@@ -28,6 +35,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: var(--white-background);
 }
 
 h1 {
@@ -42,7 +50,8 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--secondary-color);
+  color:
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -65,4 +74,68 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+
+
+
+/* form */
+
+.floating-input {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: var(--white);
+  border-radius: 15px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 1px 4px var(--gray);
+  border: 1px solid var(--white);
+  margin-bottom: 1.5rem;
+}
+
+.floating-input input {
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  color: var(--black);
+  width: 100%;
+  outline: none;
+  margin-top: 2px;
+}
+input::placeholder {
+  color
+}
+
+.floating-input label {
+  font-size: 0.85rem;
+  color: var(--gray);
+  margin-bottom: 2px;
+  display: block;
+  text-align: left;
+}
+
+
+/* Input focus */
+input:focus .floating-input {
+  outline: none;
+  border: 1px solid var(--secondary-color);
+}
+
+
+
+.icon-wrapper {
+  background: #e5d4ff;
+  border-radius: 45%;
+  padding: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-wrapper svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-color);
+  filter: drop-shadow(0px 0px 10px var(--primary-color))
 }

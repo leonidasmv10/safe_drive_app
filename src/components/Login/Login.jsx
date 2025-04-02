@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import {SmileIcon, KeyIcon} from '@/components/Icons/Icons'
+
 
 export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
   // Estado para los campos del formulario
@@ -56,19 +58,30 @@ export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
   return (
     <div>
       <h2>Iniciar sesión</h2>
-      <form onSubmit={userSubmit}>
-        <div>
-          <label>Correo electrónico</label>
+      <form onSubmit={userSubmit} className='form'>
+      <div className='floating-input'>
+        <div className='icon-wrapper'>
+        <SmileIcon/>
+        </div>
+        <div className='input-wrapper'>
+        <label>Correo electrónico</label>
           <input
             type="email"
             id="email"
             value={email}
             onChange={userData}
             required
+            placeholder=''
           />
+          
+            </div>
         </div>
-        <div>
-          <label>Contraseña</label>
+        <div className='floating-input'>
+        <div className='icon-wrapper'>
+        <KeyIcon/>
+        </div>
+        <div className='input-wrapper'>
+        <label>Contraseña</label>
           <input
             type="password"
             id="password"
@@ -76,6 +89,8 @@ export default function Login({ onNavigateToRegister, onNavigateToRecover}) {
             onChange={userData}
             required
           />
+    
+          </div>
         </div>
 
         <button type="submit" disabled={loading}>

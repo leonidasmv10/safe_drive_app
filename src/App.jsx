@@ -3,7 +3,7 @@ import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import { useState } from 'react';
 import RecoverPassword from './components/RecoverPassword/RecoverPassword'; // Asegúrate de tener este componente creado
-
+import Layout from "./Layout";
 function App() {
   // Estado para controlar si se muestra el login, registro o recuperación de contraseña
   const [showRegister, setShowRegister] = useState(false);
@@ -22,6 +22,7 @@ function App() {
   };
 
   return (
+  <Layout>
     <div className="App">
       <header className="App-header">
         <h1>Mi aplicación</h1>
@@ -39,6 +40,7 @@ function App() {
         )}
       </header>
     </div>
+    </Layout>
   );
 }
 
