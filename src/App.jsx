@@ -15,6 +15,11 @@ function App() {
     setShowRecover(false); // Asegurarse de que la pantalla de recuperación de contraseña no se muestre
   };
 
+  const handleNavigateToLogin = () => {
+    setShowRegister(false);
+    setShowRecover(false);
+  };
+
   // Función para manejar la navegación a la recuperación de contraseña
   const navigateToRecover = () => {
     setShowRecover(true);
@@ -27,16 +32,12 @@ function App() {
       <header className="App-header">
         <h1>Mi aplicación</h1>
 
-        {/* Si showRecover es true, mostramos el componente de recuperación de contraseña */}
         {showRecover ? (
           <RecoverPassword />
+        ) : showRegister ? (
+          <Register onNavigateToLogin={handleNavigateToLogin} />
         ) : (
-          // Si showRegister es true, mostramos el componente Register, si no, mostramos Login
-          !showRegister ? (
-            <Login onNavigateToRegister={handleNavigateToRegister} onNavigateToRecover={navigateToRecover} />
-          ) : (
-            <Register />
-          )
+          <Login onNavigateToRegister={handleNavigateToRegister} onNavigateToRecover={navigateToRecover} />
         )}
       </header>
     </div>
