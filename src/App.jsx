@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Im
 import Login from './components/Login/Login';
 import Register from './components/Register/Register';
 import RecoverPassword from './components/RecoverPassword/RecoverPassword';
+import Map from '@/components/Map/Map'
+import CarView from '@/components/CarView/CarView';
+import UserSettings from '@/components/UserSettings/userSettings';
 import ResetPassword from './components/ResetPassword/ResetPassword'; // Asegúrate de tener esta página
 import Layout from './Layout';
 
@@ -19,6 +22,9 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/recover-password" element={<RecoverPassword />} />
               <Route path="/reset-password/:uidb64/:token" element={<ResetPassword />} />
+              <Route path="/map" element={<Map/>}/>
+              <Route path='/car-view' element={<CarView/>}/>
+              <Route path='/settings' element={<UserSettings/>}/>
             </Routes>
           </header>
         </div>
