@@ -75,7 +75,7 @@ export default function Register() {
         // Si la respuesta es exitosa, proceder a lo que quieras (redirección, etc.)
         alert('Registro exitoso');
         // Vaciar los campos del formulario
-        navigate("/login");
+        navigate("/");
       } else {
         // Si no es exitosa, mostrar un mensaje de error
         setError(result.message || 'Hubo un error en el registro');

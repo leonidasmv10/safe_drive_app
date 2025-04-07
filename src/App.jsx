@@ -8,6 +8,9 @@ import CarView from '@/components/CarView/CarView';
 import UserSettings from '@/components/UserSettings/userSettings';
 import ResetPassword from './components/ResetPassword/ResetPassword'; // Asegúrate de tener esta página
 import Layout from './Layout';
+import Home from './components/Home/Home';
+import Map from './pages/map';
+import UserSettings from './pages/userSettings';
 
 function App() {
   return (

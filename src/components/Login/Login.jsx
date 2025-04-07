@@ -1,97 +1,85 @@
 import React, { useState } from 'react';
-import {SmileIcon, KeyIcon} from '@/components/Icons/Icons'
-import { useNavigate } from "react-router-dom";
+import { SmileIcon, KeyIcon } from '@/components/Icons/Icons';
+import { useNavigate } from 'react-router-dom';
 
-export default function Login({}) {
+export default function Login() {
   const navigate = useNavigate();
-  // Estado para los campos del formulario
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(''); // Para mostrar mensajes de error
-  const [loading, setLoading] = useState(false); // Para manejar el estado de carga
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Función para manejar el cambio en los campos de input
-  const userData = (e) => {
+  const handleInputChange = (e) => {
     const { id, value } = e.target;
-    if (id === 'username') {
-      setUsername(value);
-    } else if (id === 'password') {
-      setPassword(value);
-    }
+    if (id === 'username') setUsername(value);
+    else if (id === 'password') setPassword(value);
   };
 
-  // Función para manejar el submit del formulario
   const userSubmit = async (e) => {
-    e.preventDefault(); // Evitar que se recargue la página
-
-    setLoading(true); // Activar el estado de carga
-
-    // Crear el objeto con los datos del formulario
-    const userData = { username, password };
-    console.log(userData);
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      // Enviar la petición POST al servidor
       const response = await fetch('http://localhost:8000/user/login/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
       });
 
-      const result = await response.json(); // Parsear la respuesta del servidor
+      const result = await response.json();
 
-      if (response.ok) {
-        // Si la respuesta es exitosa, proceder a lo que quieras (redirección, etc.)
+      if (response.ok && result.access) {
+        // Guardar el token en localStorage
+        localStorage.setItem('token', result.access);
+        localStorage.setItem('refresh_token', result.refresh);
+
         alert('Inicio de sesión exitoso');
+        navigate('/home');
       } else {
-        // Si no es exitosa, mostrar un mensaje de error
-        setError(result.message || 'Usuario o contraseña incorrectos');
+        setError(result.detail || 'Usuario o contraseña incorrectos');
       }
-    } catch (error) {
-      // Manejar cualquier error de la petición
+    } catch (err) {
       setError('Hubo un error al conectar con el servidor');
+      console.error(err);
     } finally {
-      setLoading(false); // Desactivar el estado de carga
+      setLoading(false);
     }
   };
 
   return (
     <div>
       <h2>Iniciar sesión</h2>
-      <form onSubmit={userSubmit} className='form'>
-      <div className='floating-input'>
-        <div className='icon-wrapper'>
-        <SmileIcon/>
+      <form onSubmit={userSubmit} className="form">
+        <div className="floating-input">
+          <div className="icon-wrapper">
+            <SmileIcon />
+          </div>
+          <div className="input-wrapper">
+            <label>Correo electrónico</label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
         </div>
-        <div className='input-wrapper'>
-        <label>Correo electrónico</label>
-          <input
-            type="text"
-            id="username"
-            value={username}
-            onChange={userData}
-            required
-            placeholder=''
-          />
-          
-            </div>
-        </div>
-        <div className='floating-input'>
-        <div className='icon-wrapper'>
-        <KeyIcon/>
-        </div>
-        <div className='input-wrapper'>
-        <label>Contraseña</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={userData}
-            required
-          />
-    
+
+        <div className="floating-input">
+          <div className="icon-wrapper">
+            <KeyIcon />
+          </div>
+          <div className="input-wrapper">
+            <label>Contraseña</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={handleInputChange}
+              required
+            />
           </div>
         </div>
 
@@ -102,11 +90,8 @@ export default function Login({}) {
 
       {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
 
-      {/* Botón para ir al registro */}
-      <button onClick={() => navigate("/register")}>¿No tienes cuenta? Regístrate</button>
-      
-       {/* Botón para ir a la recuperación de contraseña */}
-       <button onClick={() => navigate("/recover-password")} style={{ marginTop: '10px' }}>
+      <button onClick={() => navigate('/register')}>¿No tienes cuenta? Regístrate</button>
+      <button onClick={() => navigate('/recover-password')} style={{ marginTop: '10px' }}>
         ¿Olvidaste tu contraseña?
       </button>
     </div>
