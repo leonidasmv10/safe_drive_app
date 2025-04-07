@@ -5,6 +5,9 @@ import Register from './components/Register/Register';
 import RecoverPassword from './components/RecoverPassword/RecoverPassword';
 import ResetPassword from './components/ResetPassword/ResetPassword'; // Asegúrate de tener esta página
 import Layout from './Layout';
+import Home from './components/Home/Home';
+import Map from './pages/map';
+import UserSettings from './pages/userSettings';
 
 function App() {
   return (
@@ -19,6 +22,9 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/recover-password" element={<RecoverPassword />} />
               <Route path="/reset-password/:uidb64/:token" element={<ResetPassword />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/map" element={<Map />} />
+              <Route path="/settings" element={<UserSettings />} />
             </Routes>
           </header>
         </div>
