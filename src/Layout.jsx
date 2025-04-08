@@ -1,14 +1,10 @@
 import React from "react";
 import Navigation from "@/components/Navigation/Navigation";
-import { Outlet } from "react-router-dom";
-
-export default function Layout() {
+export default function Layout({ children }) {
   return (
     <div className="layout">
-      <main>
-        <Outlet /> {/* Aquí se inyectarán las rutas hijas */}
-      </main>
-      <Navigation />
+      <main>{children}</main>
+      <Navigation/>
     </div>
   );
 }

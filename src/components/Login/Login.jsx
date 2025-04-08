@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SmileIcon, KeyIcon } from '@/components/Icons/Icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,14 +8,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Redirige si ya hay un token
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/car-view');
-    }
-  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -38,11 +30,12 @@ export default function Login() {
       const result = await response.json();
 
       if (response.ok && result.access) {
+        // Guardar el token en localStorage
         localStorage.setItem('token', result.access);
         localStorage.setItem('refresh_token', result.refresh);
 
         alert('Inicio de sesión exitoso');
-        navigate('/car-view');
+        navigate('/home');
       } else {
         setError(result.detail || 'Usuario o contraseña incorrectos');
       }
@@ -63,7 +56,7 @@ export default function Login() {
             <SmileIcon />
           </div>
           <div className="input-wrapper">
-            <label>Username</label>
+            <label>Correo electrónico</label>
             <input
               type="text"
               id="username"

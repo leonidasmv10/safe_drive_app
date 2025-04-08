@@ -1,5 +1,0 @@
-.button-column {
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Espacio entre botones */
-  }
