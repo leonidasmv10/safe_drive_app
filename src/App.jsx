@@ -8,7 +8,8 @@ import CarView from "@/components/CarView/CarView";
 import UserSettings from "@/components/UserSettings/userSettings";
 import ResetPassword from "./components/ResetPassword/ResetPassword"; // Asegúrate de tener esta página
 import Layout from "./Layout";
-
+import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
+import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
 
 function App() {
   return (
@@ -32,6 +33,8 @@ function App() {
               <Route path="/map" element={<Map />} />
               <Route path="/car-view" element={<CarView />} />
               <Route path="/settings" element={<UserSettings />} />
+              <Route path="/edit-profile" element={<EditProfile />} />
+              <Route path="/change-password" element={<ChangePassword />} />
             </Route>
           </Routes>
         </header>

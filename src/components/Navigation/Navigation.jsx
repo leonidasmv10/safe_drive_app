@@ -14,7 +14,6 @@ const navigationItems = [
 
 export default function Navigation() {
   const location = useLocation();
-  const activeIndex = navigationItems.findIndex(item => item.path === location.pathname);
 
   return (
     <nav>
@@ -22,7 +21,12 @@ export default function Navigation() {
         <div
           className="navigationHighlight"
           style={{
-            transform: `translateX(${activeIndex * 100}%)`,
+            transform: `translateX(${navigationItems.findIndex(item => 
+              item.path === location.pathname || 
+              (item.path === "/settings" && 
+                (location.pathname.includes('/edit-profile') || location.pathname.includes('/change-password'))
+              )
+            ) * 100}%)`,
           }}
         />
         {navigationItems.map((item) => (
@@ -30,6 +34,12 @@ export default function Navigation() {
             key={item.name}
             to={item.path}
             className="iconWrapper"
+            isActive={() => 
+              location.pathname === item.path || 
+              (item.path === "/settings" && 
+                (location.pathname.includes('/edit-profile') || location.pathname.includes('/change-password'))
+              )
+            }
           >
             {({ isActive }) => (
               <item.icon className={isActive ? "iconActive" : "icon"} />
