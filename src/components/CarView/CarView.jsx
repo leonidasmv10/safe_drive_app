@@ -14,7 +14,14 @@ export default function CarView() {
   const sourceRef = useRef(null);
   const animationIdRef = useRef(null);
 
-  // Simular el efecto pulsante del círculo rojo
+  const mediaRecorderRef = useRef(null);
+  const recordingRef = useRef(false);
+  const chunksRef = useRef([]);
+  const silencioTimerRef = useRef(null);
+
+  const UMBRAL = 100; // Umbral de volumen
+  const TIEMPO_SILENCIO = 2000; // Tiempo para detener la grabación si hay silencio
+
   useEffect(() => {
     const interval = setInterval(() => {
       setPulseVisible((prev) => !prev);
@@ -26,19 +33,40 @@ export default function CarView() {
   useEffect(() => {
     const initAudio = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContextRef.current = new (window.AudioContext ||
-        window.webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
 
       const bufferLength = analyserRef.current.frequencyBinCount;
       dataArrayRef.current = new Uint8Array(bufferLength);
 
-      sourceRef.current =
-        audioContextRef.current.createMediaStreamSource(stream);
+      sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
       sourceRef.current.connect(analyserRef.current);
 
-      draw(); // empieza la animación
+      // Configurar MediaRecorder
+      mediaRecorderRef.current = new MediaRecorder(stream);
+
+      mediaRecorderRef.current.ondataavailable = (e) => {
+        chunksRef.current.push(e.data);
+      };
+
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/wav" });
+        chunksRef.current = [];
+
+        const formData = new FormData();
+        formData.append("audio", blob, "evento.wav");
+
+        fetch("http://127.0.0.1:8000/models_ai/detection-critical-sound/", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => console.log("Respuesta del backend:", data))
+          .catch((err) => console.error("Error al enviar audio:", err));
+      };
+
+      draw();
     };
 
     initAudio();
@@ -57,6 +85,31 @@ export default function CarView() {
       animationIdRef.current = requestAnimationFrame(drawFrame);
 
       analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+
+      const avgVolume =
+        dataArrayRef.current.reduce((sum, val) => sum + val, 0) /
+        dataArrayRef.current.length;
+
+      if (avgVolume > UMBRAL) {
+        if (!recordingRef.current) {
+          console.log("🎤 Iniciando grabación...");
+          mediaRecorderRef.current.start();
+          recordingRef.current = true;
+        }
+
+        if (silencioTimerRef.current) {
+          clearTimeout(silencioTimerRef.current);
+          silencioTimerRef.current = null;
+        }
+      } else {
+        if (recordingRef.current && !silencioTimerRef.current) {
+          silencioTimerRef.current = setTimeout(() => {
+            console.log("🛑 Silencio detectado. Deteniendo grabación...");
+            mediaRecorderRef.current.stop();
+            recordingRef.current = false;
+          }, TIEMPO_SILENCIO);
+        }
+      }
 
       ctx.fillStyle = "black";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -83,8 +136,8 @@ export default function CarView() {
         </h2>
         <canvas
           ref={canvasRef}
-          width={500}
-          height={200}
+          width={300}
+          height={150}
           style={{ border: "1px solid #ccc", marginTop: "10px" }}
         />
       </div>
