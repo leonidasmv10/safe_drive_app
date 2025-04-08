@@ -35,7 +35,7 @@ export default function Login() {
         localStorage.setItem('refresh_token', result.refresh);
 
         alert('Inicio de sesión exitoso');
-        navigate('/home');
+        navigate('/map');
       } else {
         setError(result.detail || 'Usuario o contraseña incorrectos');
       }
