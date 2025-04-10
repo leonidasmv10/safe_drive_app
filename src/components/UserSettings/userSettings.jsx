@@ -19,7 +19,7 @@ export default function UserSettings() {
                 headers,
                 body: JSON.stringify({ refresh: localStorage.getItem('refresh_token') }),
             });
-            console.log(token)
+            
             if (res.ok) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('refresh_token');

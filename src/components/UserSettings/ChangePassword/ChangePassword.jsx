@@ -20,7 +20,7 @@ export default function ChangePassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(form)   
+      
     try {
       const res = await fetch(`${API_URL}/user/change-password/`, {
         method: "PUT",

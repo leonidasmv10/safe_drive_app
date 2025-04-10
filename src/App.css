@@ -41,3 +41,9 @@
 .read-the-docs {
   color: #888;
 }
+
+.input-background {
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 4px
+}

@@ -1,6 +1,7 @@
 import React ,{ useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
+import "@/App.css";
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
@@ -42,13 +43,13 @@ const ResetPasswordPage = () => {
     <div>
       <h2>Restablecer Contraseña</h2>
       <form onSubmit={handleSubmit}>
-        <input
+        <input className="input-background"
           type="password"
           placeholder="Nueva Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <input
+        <input className="input-background"
           type="password"
           placeholder="Confirmar Contraseña"
           value={confirmPassword}

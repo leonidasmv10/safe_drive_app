@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "@/App.css";
 
 export default function RecoverPassword() {
   const navigate = useNavigate();
@@ -21,14 +22,40 @@ export default function RecoverPassword() {
 
   return (
     <div>
-      <h2>Recuperar Contraseña</h2>
-      <form onSubmit={handleRecoverPassword}>
-        <label>Email</label>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <button type="submit">Enviar enlace</button>
-      </form>
-      <button onClick={() => navigate("/")}>Volver al Login</button>
-      {message && <p>{message}</p>}
+  <h2 className="text-xl font-bold mb-4">Recuperar Contraseña</h2>
+
+  <form onSubmit={handleRecoverPassword} className="space-y-4">
+    {/* Email */}
+    <div className=" items-center gap-2">
+      <label className="mr-3">Email</label>
+      <input
+        className="input-background "
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
     </div>
+
+    {/* Botones */}
+    <div className="grid grid-cols-1">
+      <div className="flex justify-end gap-4">
+        <button
+          type="submit"
+        >
+          Enviar enlace
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate("/")}         
+        >
+          Volver al Login
+        </button>
+      </div>
+    </div>
+  </form>
+
+  {message && <p className="mt-4 text-green-600">{message}</p>}
+</div>
   );
 }

@@ -57,47 +57,56 @@ export default function Login() {
   return (
     <div>
       <h2>Iniciar sesión</h2>
-      <form onSubmit={userSubmit} className="form">
-        <div className="floating-input">
-          <div className="icon-wrapper">
-            <SmileIcon />
-          </div>
-          <div className="input-wrapper">
-            <label>Username</label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-        </div>
+      <form onSubmit={userSubmit} className="grid gap-4">
+  <div className="grid grid-cols-4 gap-4">
+    <div className="floating-input col-span-4">
+      <div className="icon-wrapper">
+        <SmileIcon />
+      </div>
+      <div className="input-wrapper">
+        <label>Username</label>
+        <input
+          type="text"
+          id="username"
+          value={username}
+          onChange={handleInputChange}
+          required
+          className="input"
+        />
+      </div>
+    </div>
 
-        <div className="floating-input">
-          <div className="icon-wrapper">
-            <KeyIcon />
-          </div>
-          <div className="input-wrapper">
-            <label>Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-        </div>
+    <div className="floating-input col-span-3">
+      <div className="icon-wrapper">
+        <KeyIcon />
+      </div>
+      <div className="input-wrapper">
+        <label>Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          value={password}
+          onChange={handleInputChange}
+          required
+          className="input"
+        />
+      </div>
+    </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Cargando...' : 'Entrar'}
-        </button>
-      </form>
+    <button
+  className="floating-input col-span-1 bg-purple-200 hover:bg-purple-200  text-bg-purple-600 font-bold py-2 px-4 rounded"
+  type="submit"
+  disabled={loading}
+>
+  {loading ? 'Cargando...' : 'Log in'}
+</button>
+
+  </div>
+</form>
 
       {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
 
-      <button onClick={() => navigate('/register')}>¿No tienes cuenta? Regístrate</button>
+      <button className='mr-2' onClick={() => navigate('/register')}>¿No tienes cuenta? Regístrate</button>
       <button onClick={() => navigate('/recover-password')} style={{ marginTop: '10px' }}>
         ¿Olvidaste tu contraseña?
       </button>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
+import "@/App.css";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export default function Register() {
         suscription: subscription,
       },
     };
-    console.log(userDataObj);
+    
 
     try {
       // Enviar la petición POST al servidor
@@ -90,57 +91,110 @@ export default function Register() {
 
   return (
     <div>
-      <h2>Registro</h2>
-      <form onSubmit={userSubmit}>
-        <div>
-          <label>Usuario</label>
-          <input type="text" id="username" value={username} onChange={userData} required />
-        </div>
-        <div>
-          <label>Email</label> {/* Campo para el email */}
-          <input type="email" id="email" value={email} onChange={userData} required />
-        </div>
-        <div>
-          <label>Contraseña</label>
-          <input type="password" id="password" value={password} onChange={userData} required />
-        </div>
-        <div>
-          <label>Nombre Completo</label>
-          <input type="text" id="fullName" value={fullName} onChange={userData} required />
-        </div>
-        <div>
-          <label>Número de Teléfono</label>
-          <input type="text" id="phoneNumber" value={phoneNumber} onChange={userData} required />
-        </div>
-        <div>
-          <label>Alerta</label>
-          <select id="preferredAlertType" value={preferredAlertType} onChange={userData}>
-            <option value="visual">Visual</option>
-            <option value="audio">Audio</option>
-          </select>
-        </div>
-        <div>
-          <label>Vehículo</label>
-          <select id="vehicleType" value={vehicleType} onChange={userData}>
-            <option value="car">Coche</option>
-            <option value="motorcycle">Moto</option>
-            <option value="van">Furgoneta</option>
-            <option value="truck">Camión</option>
-          </select>
-        </div>
-        <div>
-          <label>Suscripción</label>
-          <select id="subscription" value={subscription} onChange={userData}>
-            <option value="free">Gratis</option>
-            <option value="premium">Premium</option>
-          </select>
-        </div>
-        <button type="submit" disabled={loading}>
+  <h2 className="text-xl font-bold mb-4">Registro</h2>
+  <form onSubmit={userSubmit} className="grid grid-cols-4 gap-4">
+    {/* Usuario */}
+    <label className="col-span-2 self-center">Usuario</label>
+    <input
+      className="input-background col-span-2"
+      type="text"
+      id="username"
+      value={username}
+      onChange={userData}
+      required
+    />
+
+    {/* Email */}
+    <label className="col-span-2 self-center">Email</label>
+    <input
+      className="input-background col-span-2"
+      type="email"
+      id="email"
+      value={email}
+      onChange={userData}
+      required
+    />
+
+    {/* Contraseña */}
+    <label className="col-span-2 self-center">Contraseña</label>
+    <input
+      className="input-background col-span-2"
+      type="password"
+      id="password"
+      value={password}
+      onChange={userData}
+      required
+    />
+
+    {/* Nombre Completo */}
+    <label className="col-span-2 self-center">Nombre Completo</label>
+    <input
+      className="input-background col-span-2"
+      type="text"
+      id="fullName"
+      value={fullName}
+      onChange={userData}
+      required
+    />
+
+    {/* Teléfono */}
+    <label className="col-span-2 self-center">Número de Teléfono</label>
+    <input
+      className="input-background col-span-2"
+      type="text"
+      id="phoneNumber"
+      value={phoneNumber}
+      onChange={userData}
+      required
+    />
+
+    {/* Tipo de alerta */}
+    <label className="col-span-2 self-center">Alerta</label>
+    <select
+      className="input-background col-span-2"
+      id="preferredAlertType"
+      value={preferredAlertType}
+      onChange={userData}
+    >
+      <option value="visual">Visual</option>
+      <option value="audio">Audio</option>
+    </select>
+
+    {/* Vehículo */}
+    <label className="col-span-2 self-center">Vehículo</label>
+    <select
+      className="input-background col-span-2"
+      id="vehicleType"
+      value={vehicleType}
+      onChange={userData}
+    >
+      <option value="car">Coche</option>
+      <option value="motorcycle">Moto</option>
+      <option value="van">Furgoneta</option>
+      <option value="truck">Camión</option>
+    </select>
+
+    {/* Suscripción */}
+    <label className="col-span-2 self-center">Suscripción</label>
+    <select
+      className="input-background col-span-2"
+      id="subscription"
+      value={subscription}
+      onChange={userData}
+    >
+      <option value="free">Gratis</option>
+      <option value="premium">Premium</option>
+    </select>
+
+    {/* Botón de envío */}
+    <div className="col-span-4 flex justify-end">
+    <button type="submit" disabled={loading}>
           {loading ? 'Registrando...' : 'Registrarse'}
         </button>
-      </form>
-
-      {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
     </div>
+  </form>
+
+  {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
+</div>
   );
 }

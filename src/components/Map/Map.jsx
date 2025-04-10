@@ -3,21 +3,37 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
 export default function Map() {
-  const [position, setPosition] = useState([51.505, -0.09]); // posición inicial (Londres)
+  const [position, setPosition] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const updatePosition = () => {
-      navigator.geolocation.getCurrentPosition((pos) => {
-        const { latitude, longitude } = pos.coords;
-        setPosition([latitude, longitude]);
-      });
+      console.log("Actualizando posición...");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setPosition([latitude, longitude]);
+        },
+        (err) => {
+          setError("No se pudo obtener la ubicación. Asegúrate de permitir el acceso.");
+          console.error("Error al obtener la ubicación:", err);
+        }
+      );
     };
 
-    updatePosition(); // al cargar
-    const interval = setInterval(updatePosition, 5000); // actualiza cada 5 segundos
+    updatePosition();
+    const interval = setInterval(updatePosition, 5000);
 
     return () => clearInterval(interval);
   }, []);
+
+  if (error) {
+    return <div className="text-red-500 font-bold p-4">{error}</div>;
+  }
+
+  if (!position) {
+    return <div className="p-4 font-semibold">Cargando mapa...</div>;
+  }
 
   return (
     <>
@@ -40,6 +56,7 @@ export default function Map() {
           </div>
         </div>
       </div>
+
       <MapContainer
         center={position}
         zoom={13}
