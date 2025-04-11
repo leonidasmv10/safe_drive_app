@@ -14,12 +14,7 @@ import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassw
 function App() {
   return (
     <Router>
-      {" "}
-      {/* Envolvemos la app en Router */}
-
-      <div className="App">
-        <header className="App-header">
-          <h1>Mi aplicación</h1>
+        
 
           <Routes>
             {/* Rutas sin Layout */}
@@ -37,8 +32,7 @@ function App() {
               <Route path="/change-password" element={<ChangePassword />} />
             </Route>
           </Routes>
-        </header>
-      </div>
+        
 
     </Router>
   );

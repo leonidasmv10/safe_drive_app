@@ -47,3 +47,9 @@
   border: 2px solid black;
   border-radius: 4px
 }
+
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
