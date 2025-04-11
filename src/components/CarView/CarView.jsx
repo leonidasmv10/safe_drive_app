@@ -33,14 +33,16 @@ export default function CarView() {
   useEffect(() => {
     const initAudio = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext ||
+        window.webkitAudioContext)();
       analyserRef.current = audioContextRef.current.createAnalyser();
       analyserRef.current.fftSize = 256;
 
       const bufferLength = analyserRef.current.frequencyBinCount;
       dataArrayRef.current = new Uint8Array(bufferLength);
 
-      sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+      sourceRef.current =
+        audioContextRef.current.createMediaStreamSource(stream);
       sourceRef.current.connect(analyserRef.current);
 
       // Configurar MediaRecorder
@@ -56,10 +58,15 @@ export default function CarView() {
 
         const formData = new FormData();
         formData.append("audio", blob, "evento.wav");
+        formData.append("location", 987654321.123);
+        formData.append("longitud", 86523.3); // Cambia esto según sea necesario
 
         fetch("http://127.0.0.1:8000/models_ai/detection-critical-sound/", {
           method: "POST",
           body: formData,
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
         })
           .then((res) => res.json())
           .then((data) => console.log("Respuesta del backend:", data))
