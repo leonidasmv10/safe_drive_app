@@ -1,4 +1,5 @@
 import "./App.css";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Importamos React Router
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
@@ -12,6 +13,7 @@ import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
 import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
 
 function App() {
+  const [location, setLocation] = useState({ latitude: null, longitude: null });
   return (
     <Router>
         
@@ -25,8 +27,8 @@ function App() {
 
             {/* Rutas con Layout */}
             <Route element={<Layout />}>
-              <Route path="/map" element={<Map />} />
-              <Route path="/car-view" element={<CarView />} />
+            <Route path="/map" element={<Map setLocation={setLocation} />} />
+            <Route path="/car-view" element={<CarView location={location} />} />
               <Route path="/settings" element={<UserSettings />} />
               <Route path="/edit-profile" element={<EditProfile />} />
               <Route path="/change-password" element={<ChangePassword />} />

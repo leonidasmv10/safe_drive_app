@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { Car, Navigation, Settings } from "lucide-react";
-import { Warning } from "postcss";
 import WarningAlert from "../shared/WarningAlert";
 
-export default function CarView() {
+export default function CarView({location }) {
   const [alertVisible, setAlertVisible] = useState(true);
   const [pulseVisible, setPulseVisible] = useState(true);
 
@@ -58,16 +56,18 @@ export default function CarView() {
 
         const formData = new FormData();
         formData.append("audio", blob, "evento.wav");
-        formData.append("location", 987654321.123);
-        formData.append("longitud", 86523.3); // Cambia esto según sea necesario
+        formData.append("latitud",location.latitude); // Cambia esto según sea necesario
+        formData.append("longitud", location.longitude); // Cambia esto según sea necesario
+        console.log(formData.get("audio"));
 
         fetch("http://127.0.0.1:8000/models_ai/detection-critical-sound/", {
           method: "POST",
           body: formData,
           headers: {
-            Authorization: localStorage.getItem("token"),
+            "Authorization": `Bearer ${localStorage.getItem("token")}`, // Corrección aquí
           },
         })
+
           .then((res) => res.json())
           .then((data) => console.log("Respuesta del backend:", data))
           .catch((err) => console.error("Error al enviar audio:", err));

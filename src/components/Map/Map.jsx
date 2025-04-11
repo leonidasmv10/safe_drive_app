@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 
-export default function Map() {
+export default function Map({setLocation} ) {
   const [position, setPosition] = useState(null);
   const [error, setError] = useState(null);
 
@@ -12,8 +12,8 @@ export default function Map() {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
-          setPosition([latitude, longitude]);
-          console.log(latitude, longitude);
+          setPosition([latitude, longitude])
+          setLocation({ latitude, longitude });
         },
         (err) => {
           setError("No se pudo obtener la ubicación. Asegúrate de permitir el acceso.");
@@ -26,7 +26,7 @@ export default function Map() {
     const interval = setInterval(updatePosition, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [setLocation]);
 
   if (error) {
     return <div className="text-red-500 font-bold p-4">{error}</div>;
