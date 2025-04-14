@@ -1,41 +1,42 @@
 import "./App.css";
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom"; // Importamos React Router
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
 import RecoverPassword from "./components/RecoverPassword/RecoverPassword";
 import Map from "@/components/Map/Map";
 import CarView from "@/components/CarView/CarView";
 import UserSettings from "@/components/UserSettings/userSettings";
-import ResetPassword from "./components/ResetPassword/ResetPassword"; // Asegúrate de tener esta página
+import ResetPassword from "./components/ResetPassword/ResetPassword";
 import Layout from "./Layout";
 import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
 import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
+import Test from "./components/Test";
 
 function App() {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
   return (
     <Router>
-        
+      <Routes>
+        {/* Rutas sin Layout */}
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/recover-password" element={<RecoverPassword />} />
+        <Route
+          path="/reset-password/:uidb64/:token"
+          element={<ResetPassword />}
+        />
 
-          <Routes>
-            {/* Rutas sin Layout */}
-            <Route path="/" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/recover-password" element={<RecoverPassword />} />
-            <Route path="/reset-password/:uidb64/:token" element={<ResetPassword />} />
-
-            {/* Rutas con Layout */}
-            <Route element={<Layout />}>
-            <Route path="/map" element={<Map setLocation={setLocation} />} />
-            <Route path="/car-view" element={<CarView location={location} />} />
-              <Route path="/settings" element={<UserSettings />} />
-              <Route path="/edit-profile" element={<EditProfile />} />
-              <Route path="/change-password" element={<ChangePassword />} />
-            </Route>
-          </Routes>
-        
-
+        {/* Rutas con Layout */}
+        <Route element={<Layout />}>
+          <Route path="/map" element={<Map setLocation={setLocation} />} />
+          <Route path="/test" element={<Test />} />
+          <Route path="/car-view" element={<CarView location={location} />} />
+          <Route path="/settings" element={<UserSettings />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/change-password" element={<ChangePassword />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }

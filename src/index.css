@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-
+/* 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -23,9 +23,9 @@
   --black: #202020;
   
 
-}
+} */
 
-a {
+/* a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
@@ -39,7 +39,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--white-background);
-  display: block; /* Evitamos el centrado innecesario */
+  display: block; 
 }
 h1 {
   font-size: 3.2em;
@@ -77,14 +77,14 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+} */
 
 
 
 
 /* form */
 
-.floating-input {
+/* .floating-input {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -115,11 +115,11 @@ input::placeholder {
   margin-bottom: 2px;
   display: block;
   text-align: left;
-}
+} */
 
 
 /* Input focus */
-input:focus .floating-input {
+/* input:focus .floating-input {
   outline: none;
   border: 1px solid var(--secondary-color);
 }
@@ -141,4 +141,4 @@ input:focus .floating-input {
   height: 20px;
   color: var(--primary-color);
   filter: drop-shadow(0px 0px 10px var(--primary-color))
-}
+} */

@@ -1,79 +1,105 @@
 import { useState, useEffect, useRef } from "react";
+import { Car, Volume2, AlertTriangle } from "lucide-react";
+
 import WarningAlert from "../shared/WarningAlert";
 
-export default function CarView({location }) {
-  const [alertVisible, setAlertVisible] = useState(true);
-  const [pulseVisible, setPulseVisible] = useState(true);
+// Componente de alerta ajustado al diseño de la imagen
+// const WarningAlert = ({ direction = "LEFT" }) => {
+//   return (
+//     <div className="bg-red-50 rounded-full py-2 px-4 flex items-center shadow-md">
+//       <Car className="text-red-600 mr-2" size={18} />
+//       <div>
+//         <span className="text-red-600 font-bold text-sm mr-1">WARNING!</span>
+//         <span className="text-gray-800 text-sm">
+//           POLICE CAR in your <span className="font-semibold">{direction}</span>
+//         </span>
+//       </div>
+//     </div>
+//   );
+// };
 
-  const canvasRef = useRef(null);
+// Tipos de sonidos críticos que podemos detectar
+const criticalSounds = {
+  police: {
+    name: "Police Siren",
+    description: "Emergency police vehicle approaching",
+    action: "Slow down and move to the side if possible",
+    decibels: "110-120 dB",
+  },
+  ambulance: {
+    name: "Ambulance Siren",
+    description: "Emergency medical vehicle approaching",
+    action: "Give way immediately",
+    decibels: "110-120 dB",
+  },
+  horn: {
+    name: "Car Horn",
+    description: "Warning from nearby vehicle",
+    action: "Check surroundings and adjust driving",
+    decibels: "100-110 dB",
+  },
+  collision: {
+    name: "Collision Sound",
+    description: "Possible accident nearby",
+    action: "Proceed with caution",
+    decibels: "120+ dB",
+  },
+};
+
+export default function CarView() {
+  const [alertVisible, setAlertVisible] = useState(true);
+  const [soundIntensity, setSoundIntensity] = useState(0.7); // 0 a 1
+  const [soundDirection, setSoundDirection] = useState("LEFT");
+  const [showDetails, setShowDetails] = useState(false);
+  const [detectedSound, setDetectedSound] = useState("police");
+
+  // Referencias para audio
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const dataArrayRef = useRef(null);
   const sourceRef = useRef(null);
+  const streamRef = useRef(null);
   const animationIdRef = useRef(null);
 
-  const mediaRecorderRef = useRef(null);
-  const recordingRef = useRef(false);
-  const chunksRef = useRef([]);
-  const silencioTimerRef = useRef(null);
-
-  const UMBRAL = 100; // Umbral de volumen
-  const TIEMPO_SILENCIO = 2000; // Tiempo para detener la grabación si hay silencio
-
+  // Cambiar la dirección periódicamente para demostrar funcionalidad
   useEffect(() => {
+    const directions = ["LEFT", "RIGHT", "FRONT", "REAR"];
+    let index = 0;
+
     const interval = setInterval(() => {
-      setPulseVisible((prev) => !prev);
-    }, 800);
+      index = (index + 1) % directions.length;
+      setSoundDirection(directions[index]);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
+  // Inicializar audio
   useEffect(() => {
     const initAudio = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContextRef.current = new (window.AudioContext ||
-        window.webkitAudioContext)();
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        streamRef.current = stream;
 
-      const bufferLength = analyserRef.current.frequencyBinCount;
-      dataArrayRef.current = new Uint8Array(bufferLength);
+        audioContextRef.current = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        analyserRef.current.fftSize = 256;
 
-      sourceRef.current =
-        audioContextRef.current.createMediaStreamSource(stream);
-      sourceRef.current.connect(analyserRef.current);
+        const bufferLength = analyserRef.current.frequencyBinCount;
+        dataArrayRef.current = new Uint8Array(bufferLength);
 
-      // Configurar MediaRecorder
-      mediaRecorderRef.current = new MediaRecorder(stream);
+        sourceRef.current =
+          audioContextRef.current.createMediaStreamSource(stream);
+        sourceRef.current.connect(analyserRef.current);
 
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        chunksRef.current.push(e.data);
-      };
-
-      mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/wav" });
-        chunksRef.current = [];
-
-        const formData = new FormData();
-        formData.append("audio", blob, "evento.wav");
-        formData.append("latitud",location.latitude); // Cambia esto según sea necesario
-        formData.append("longitud", location.longitude); // Cambia esto según sea necesario
-        console.log(formData.get("audio"));
-
-        fetch("http://127.0.0.1:8000/models_ai/detection-critical-sound/", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`, // Corrección aquí
-          },
-        })
-
-          .then((res) => res.json())
-          .then((data) => console.log("Respuesta del backend:", data))
-          .catch((err) => console.error("Error al enviar audio:", err));
-      };
-
-      draw();
+        // Comenzar a analizar el audio
+        updateSoundIntensity();
+      } catch (err) {
+        console.error("Error al inicializar el audio:", err);
+      }
     };
 
     initAudio();
@@ -81,97 +107,208 @@ export default function CarView({location }) {
     return () => {
       cancelAnimationFrame(animationIdRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
+
+      // Detener y liberar la transmisión de audio
+      if (streamRef.current) {
+        const tracks = streamRef.current.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
     };
   }, []);
 
-  const draw = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+  // Actualizar la intensidad del sonido
+  const updateSoundIntensity = () => {
+    if (!analyserRef.current || !dataArrayRef.current) {
+      animationIdRef.current = requestAnimationFrame(updateSoundIntensity);
+      return;
+    }
 
-    const drawFrame = () => {
-      animationIdRef.current = requestAnimationFrame(drawFrame);
+    analyserRef.current.getByteFrequencyData(dataArrayRef.current);
 
-      analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+    // Calcular el volumen promedio
+    const avgVolume =
+      dataArrayRef.current.reduce((sum, val) => sum + val, 0) /
+      dataArrayRef.current.length;
 
-      const avgVolume =
-        dataArrayRef.current.reduce((sum, val) => sum + val, 0) /
-        dataArrayRef.current.length;
+    // Normalizar entre 0 y 1, con un valor mínimo para que no desaparezca completamente
+    const normalizedVolume = Math.max(0.3, Math.min(1, avgVolume / 200));
+    setSoundIntensity(normalizedVolume);
 
-      if (avgVolume > UMBRAL) {
-        if (!recordingRef.current) {
-          console.log("🎤 Iniciando grabación...");
-          mediaRecorderRef.current.start();
-          recordingRef.current = true;
-        }
+    // Simulación: Cambiar el tipo de sonido detectado basado en patrones de frecuencia
+    // En un sistema real, esto utilizaría algoritmos más sofisticados de análisis de audio
+    if (avgVolume > 150) {
+      // Sonido muy fuerte, probablemente una colisión
+      setDetectedSound("collision");
+    } else if (
+      dataArrayRef.current[5] > 200 &&
+      dataArrayRef.current[10] > 180
+    ) {
+      // Patrón particular para sirena de ambulancia (simulado)
+      setDetectedSound("ambulance");
+    } else if (
+      dataArrayRef.current[15] > 180 &&
+      dataArrayRef.current[20] < 100
+    ) {
+      // Patrón particular para bocina (simulado)
+      setDetectedSound("horn");
+    } else {
+      // Patrón por defecto, sirena policial
+      setDetectedSound("police");
+    }
 
-        if (silencioTimerRef.current) {
-          clearTimeout(silencioTimerRef.current);
-          silencioTimerRef.current = null;
-        }
-      } else {
-        if (recordingRef.current && !silencioTimerRef.current) {
-          silencioTimerRef.current = setTimeout(() => {
-            console.log("🛑 Silencio detectado. Deteniendo grabación...");
-            mediaRecorderRef.current.stop();
-            recordingRef.current = false;
-          }, TIEMPO_SILENCIO);
-        }
-      }
+    animationIdRef.current = requestAnimationFrame(updateSoundIntensity);
+  };
 
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Calcular posición y tamaño del indicador de sonido según dirección e intensidad
+  const getSoundIndicatorStyles = () => {
+    const size = Math.max(20, Math.round(soundIntensity * 50));
+    const blurSize = Math.max(5, Math.round(soundIntensity * 10));
 
-      const barWidth = (canvas.width / dataArrayRef.current.length) * 2.5;
-      let x = 0;
-
-      for (let i = 0; i < dataArrayRef.current.length; i++) {
-        const barHeight = dataArrayRef.current[i];
-        ctx.fillStyle = `rgb(${barHeight + 100}, 50, 200)`;
-        ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
-        x += barWidth + 1;
-      }
+    let styles = {
+      width: `${size}px`,
+      height: `${size}px`,
+      filter: `blur(${blurSize}px)`,
+      opacity: 0.7,
     };
 
-    drawFrame();
+    // Posicionar el indicador según la dirección del sonido
+    switch (soundDirection) {
+      case "LEFT":
+        styles = {
+          ...styles,
+          left: "0",
+          top: "40%",
+          transform: "translateX(-30%)",
+        };
+        break;
+      case "RIGHT":
+        styles = {
+          ...styles,
+          right: "0",
+          top: "40%",
+          transform: "translateX(30%)",
+        };
+        break;
+      case "FRONT":
+        styles = {
+          ...styles,
+          top: "0",
+          left: "50%",
+          transform: "translateX(-50%) translateY(-30%)",
+        };
+        break;
+      case "REAR":
+        styles = {
+          ...styles,
+          bottom: "0",
+          left: "50%",
+          transform: "translateX(-50%) translateY(30%)",
+        };
+        break;
+      default:
+        styles = {
+          ...styles,
+          left: "0",
+          top: "40%",
+          transform: "translateX(-30%)",
+        };
+    }
+
+    return styles;
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray relative overflow-hidden">
-      <div>
-        <h2 className="text-xl font-bold">
-          Visualización de audio en tiempo real
-        </h2>
-        <canvas
-          ref={canvasRef}
-          width={300}
-          height={150}
-          style={{ border: "1px solid #ccc", marginTop: "10px" }}
-        />
+    <div className="flex flex-col h-screen bg-gray-50 relative overflow-hidden">
+      {/* Alerta */}
+      <div className="px-4 pt-4">
+        {alertVisible && <WarningAlert direction={soundDirection} />}
       </div>
 
-      {alertVisible && <WarningAlert></WarningAlert>}
-
-      <div className="flex-1 relative flex justify-center items-center">
-        <div
-          className={`absolute left-1/3 transform -translate-x-1/2 ${
-            pulseVisible ? "opacity-60" : "opacity-20"
-          } transition-opacity duration-500`}
-        >
-          <div className="w-16 h-16 bg-red-500 rounded-full filter blur-md"></div>
-        </div>
-
-        <div className="w-32 h-64 bg-gray-100 relative">
+      {/* Visualización del vehículo con alerta */}
+      <div className="flex-1 relative flex justify-center items-center px-4">
+        {/* Contenedor principal del vehículo */}
+        <div className="w-full max-w-xs bg-white rounded-lg relative overflow-hidden shadow-sm">
+          {/* Alerta con pulso rojo - posición ajustada según dirección del sonido */}
           <div
-            className="absolute inset-0 bg-white border-2 border-gray-200 rounded-lg shadow-lg"
-            style={{
-              clipPath:
-                "polygon(15% 20%, 85% 20%, 95% 40%, 95% 85%, 5% 85%, 5% 40%)",
-            }}
+            className="absolute bg-red-500 rounded-full transition-all duration-300"
+            style={getSoundIndicatorStyles()}
+          ></div>
+
+          {/* Imagen del vehículo */}
+          <img
+            src="car.png"
+            alt="Vista superior de un vehículo blanco"
+            className="w-full object-contain relative z-10"
+          />
+
+          {/* Botón de información */}
+          <button
+            onClick={() => setShowDetails(!showDetails)}
+            className="absolute bottom-3 right-3 bg-gray-800 text-white text-xs font-medium py-1 px-2 rounded-full z-20"
           >
-            <div className="absolute left-1/4 right-1/4 top-1/3 bottom-1/2 bg-gray-800 rounded-sm"></div>
+            {showDetails ? "Hide Info" : "Sound Info"}
+          </button>
+        </div>
+      </div>
+
+      {/* Panel de información - aparece cuando showDetails es true */}
+      {showDetails && (
+        <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-4 z-30 border border-gray-200">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-bold text-gray-800 flex items-center">
+              <AlertTriangle className="text-red-500 mr-2" size={16} />
+              Critical Sound Detected
+            </h3>
+            <button
+              onClick={() => setShowDetails(false)}
+              className="text-gray-500"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-gray-500">Type</p>
+              <p className="font-medium">
+                {criticalSounds[detectedSound].name}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500">Direction</p>
+              <p className="font-medium">{soundDirection}</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Intensity</p>
+              <div className="flex items-center">
+                <Volume2 className="text-gray-600 mr-1" size={14} />
+                <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
+                  <div
+                    className="h-full bg-red-500 transition-all duration-300"
+                    style={{ width: `${soundIntensity * 100}%` }}
+                  ></div>
+                </div>
+                <span className="ml-1 text-xs text-gray-600">
+                  {Math.round(soundIntensity * 100)}%
+                </span>
+              </div>
+            </div>
+            <div>
+              <p className="text-gray-500">Est. Decibels</p>
+              <p className="font-medium">
+                {criticalSounds[detectedSound].decibels}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <p className="text-gray-500 text-sm">Recommended Action</p>
+            <p className="text-sm font-medium text-gray-800">
+              {criticalSounds[detectedSound].action}
+            </p>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
