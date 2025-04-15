@@ -46,7 +46,7 @@ const criticalSounds = {
   },
 };
 
-export default function CarView() {
+export default function CarView({ location }) {
   const [alertVisible, setAlertVisible] = useState(true);
   const [soundIntensity, setSoundIntensity] = useState(0.7); // 0 a 1
   const [soundDirection, setSoundDirection] = useState("LEFT");
@@ -73,6 +73,12 @@ export default function CarView() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (location?.latitude && location?.longitude) {
+      console.log("Ubicación recibida en CarView:", location);
+    }
+  });
 
   // Inicializar audio
   useEffect(() => {

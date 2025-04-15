@@ -1,37 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
-export default function Map({setLocation} ) {
+function RecenterMap({ position }) {
+  const map = useMap();
+
+  React.useEffect(() => {
+    if (position) {
+      map.setView(position);
+    }
+  }, [position, map]);
+
+  return null;
+}
+
+export default function Map({ location }) {
   const [position, setPosition] = useState(null);
-  const [error, setError] = useState(null);
 
+  // Si location tiene latitud y longitud, actualizamos la posición
   useEffect(() => {
-    const updatePosition = () => {
-      console.log("Actualizando posición...");
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setPosition([latitude, longitude])
-          setLocation({ latitude, longitude });
-        },
-        (err) => {
-          setError("No se pudo obtener la ubicación. Asegúrate de permitir el acceso.");
-          console.error("Error al obtener la ubicación:", err);
-        }
-      );
-    };
+    if (location?.latitude && location?.longitude) {
+      setPosition([location.latitude, location.longitude]);
+    }
+  }, [location]);
+  console.log(position)
 
-    updatePosition();
-    const interval = setInterval(updatePosition, 5000);
-
-    return () => clearInterval(interval);
-  }, [setLocation]);
-
-  if (error) {
-    return <div className="text-red-500 font-bold p-4">{error}</div>;
-  }
-
+  // Si no hay una ubicación válida, mostramos un mensaje
   if (!position) {
     return <div className="p-4 font-semibold">Cargando mapa...</div>;
   }
@@ -56,7 +50,7 @@ export default function Map({setLocation} ) {
           </div>
         </div>
       </div>
-  
+
       {/* Mapa */}
       <div className="absolute top-0 left-0 right-0 bottom-0 z-0">
         <MapContainer
@@ -71,17 +65,16 @@ export default function Map({setLocation} ) {
           <Marker
             position={position}
             icon={L.icon({
-              iconUrl:
-                "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+              iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
               iconSize: [25, 41],
               iconAnchor: [12, 41],
             })}
           >
             <Popup>¡Estás aquí!</Popup>
           </Marker>
+          <RecenterMap position={position} />
         </MapContainer>
       </div>
     </div>
   );
-  
 }
