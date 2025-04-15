@@ -1,5 +1,6 @@
 import React from "react";
 import Navigation from "@/components/Navigation/Navigation";
+import NotificationLayout from "@/components/shared/NotificationLayout";
 import { Outlet } from "react-router-dom";
 
 export default function Layout() {
@@ -9,6 +10,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Navigation />
+      <NotificationLayout/>
     </div>
   );
 }

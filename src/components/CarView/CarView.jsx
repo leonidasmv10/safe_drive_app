@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Car, Volume2, AlertTriangle } from "lucide-react";
 
-import WarningAlert from "../shared/WarningAlert";
+//import WarningAlert from "../shared/WarningAlert";
 
 // Componente de alerta ajustado al diseño de la imagen
 // const WarningAlert = ({ direction = "LEFT" }) => {
@@ -47,7 +47,7 @@ const criticalSounds = {
 };
 
 export default function CarView() {
-  const [alertVisible, setAlertVisible] = useState(true);
+  //const [alertVisible, setAlertVisible] = useState(true);
   const [soundIntensity, setSoundIntensity] = useState(0.7); // 0 a 1
   const [soundDirection, setSoundDirection] = useState("LEFT");
   const [showDetails, setShowDetails] = useState(false);
@@ -221,7 +221,7 @@ export default function CarView() {
     <div className="flex flex-col h-screen bg-gray-50 relative overflow-hidden">
       {/* Alerta */}
       <div className="px-4 pt-4">
-        {alertVisible && <WarningAlert direction={soundDirection} />}
+        {/* alertVisible && <WarningAlert direction={soundDirection} />*/}
       </div>
 
       {/* Visualización del vehículo con alerta */}

@@ -29,7 +29,7 @@ const WarningAlert = ({ direction = "LEFT", type = "police", onClose }) => {
   if (!isVisible) return null;
 
   return (
-    <div className="bg-red-50 rounded-xl p-3 mb-4 flex items-center shadow-md animate-fadeIn relative">
+    <div className="bg-red-50 rounded-xl p-3 mb-4 flex items-center shadow-md animate-fadeIn relative ">
       {/* Icono con fondo */}
       <div
         className={`bg-red-100 p-2 rounded-lg mr-3 ${
