@@ -17,10 +17,10 @@ import Test from "./components/Test";
 
 function App() {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
-  
+
   // Función para obtener la ubicación usando Google Geolocation API
   const getLocationFromGoogle = async () => {
-    const apiKey = "AIzaSyBMpT8paiE1OURi8MaANDjxcmVbVjpnpLI"; // Reemplaza con tu clave API de Google
+    const apiKey = "AIzaSyBMpT8paiE1OURi8MaANDjxcmVbVjpnpLI"; // Tu clave API de Google
     try {
       const response = await fetch(
         `https://www.googleapis.com/geolocation/v1/geolocate?key=${apiKey}`,
@@ -29,18 +29,23 @@ function App() {
         }
       );
       const data = await response.json();
-     
-      const { lat, lng } = data.location;
 
-      // Actualiza el estado con la nueva ubicación
-      setLocation({ latitude: lat, longitude: lng });
+      if (data.location) {
+        const { lat, lng } = data.location;
+        setLocation({ latitude: lat, longitude: lng });
+        console.log("Ubicación actualizada:", lat, lng);
+      } else {
+        console.warn("No se pudo obtener la ubicación:", data);
+      }
     } catch (error) {
       console.error("Error al obtener la ubicación de Google API:", error);
     }
   };
 
   useEffect(() => {
-    getLocationFromGoogle();
+    getLocationFromGoogle(); // primera llamada inmediata
+    const interval = setInterval(getLocationFromGoogle, 5000); // actualizar cada 5 segundos
+    return () => clearInterval(interval); // limpiar al desmontar
   }, []);
 
   return (

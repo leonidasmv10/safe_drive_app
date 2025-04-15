@@ -5,7 +5,7 @@ import L from "leaflet";
 function RecenterMap({ position }) {
   const map = useMap();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (position) {
       map.setView(position);
     }
@@ -17,15 +17,14 @@ function RecenterMap({ position }) {
 export default function Map({ location }) {
   const [position, setPosition] = useState(null);
 
-  // Si location tiene latitud y longitud, actualizamos la posición
   useEffect(() => {
     if (location?.latitude && location?.longitude) {
-      setPosition([location.latitude, location.longitude]);
+      const newPosition = [location.latitude, location.longitude];
+      console.log("📍 Coordenadas recibidas:", newPosition);
+      setPosition(newPosition);
     }
   }, [location]);
-  console.log(position)
 
-  // Si no hay una ubicación válida, mostramos un mensaje
   if (!position) {
     return <div className="p-4 font-semibold">Cargando mapa...</div>;
   }
