@@ -1,36 +1,29 @@
-import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
-export default function Map({setLocation} ) {
-  const [position, setPosition] = useState(null);
-  const [error, setError] = useState(null);
+function RecenterMap({ position }) {
+  const map = useMap();
 
   useEffect(() => {
-    const updatePosition = () => {
-      console.log("Actualizando posición...");
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setPosition([latitude, longitude])
-          setLocation({ latitude, longitude });
-        },
-        (err) => {
-          setError("No se pudo obtener la ubicación. Asegúrate de permitir el acceso.");
-          console.error("Error al obtener la ubicación:", err);
-        }
-      );
-    };
+    if (position) {
+      map.setView(position);
+    }
+  }, [position, map]);
 
-    updatePosition();
-    const interval = setInterval(updatePosition, 5000);
+  return null;
+}
 
-    return () => clearInterval(interval);
-  }, [setLocation]);
+export default function Map({ location }) {
+  const [position, setPosition] = useState(null);
 
-  if (error) {
-    return <div className="text-red-500 font-bold p-4">{error}</div>;
-  }
+  useEffect(() => {
+    if (location?.latitude && location?.longitude) {
+      const newPosition = [location.latitude, location.longitude];
+      console.log("📍 Coordenadas recibidas:", newPosition);
+      setPosition(newPosition);
+    }
+  }, [location]);
 
   if (!position) {
     return <div className="p-4 font-semibold">Cargando mapa...</div>;
@@ -54,17 +47,16 @@ export default function Map({setLocation} ) {
           <Marker
             position={position}
             icon={L.icon({
-              iconUrl:
-                "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+              iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
               iconSize: [25, 41],
               iconAnchor: [12, 41],
             })}
           >
             <Popup>¡Estás aquí!</Popup>
           </Marker>
+          <RecenterMap position={position} />
         </MapContainer>
       </div>
     </div>
   );
-  
 }

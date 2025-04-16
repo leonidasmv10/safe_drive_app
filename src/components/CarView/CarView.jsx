@@ -74,6 +74,12 @@ export default function CarView() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (location?.latitude && location?.longitude) {
+      console.log("Ubicación recibida en CarView:", location);
+    }
+  });
+
   // Inicializar audio
   useEffect(() => {
     const initAudio = async () => {
