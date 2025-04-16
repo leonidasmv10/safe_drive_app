@@ -224,97 +224,93 @@ export default function CarView() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 relative overflow-hidden">
-      {/* Alerta */}
-      <div className="px-4 pt-4">
-        {/* alertVisible && <WarningAlert direction={soundDirection} />*/}
+    <div className="flex flex-col h-screen relative overflow-hidden bg-gray-200">
+    {/* Alerta */}
+    <div className="px-4 pt-4">
+      {alertVisible && <WarningAlert direction={soundDirection} />}
+    </div>
+  
+    {/* Visualización del vehículo con alerta */}
+    <div className="flex-1  flex justify-center items-center px-4">
+      {/* Contenedor principal del vehículo sin borde */}
+      <div className="w-full mb-6 max-w-[290px] rounded-lg relative overflow-hidden shadow-sm">
+        {/* Alerta con pulso rojo - posición ajustada según dirección del sonido */}
+        <div
+          className="absolute bg-red-500 rounded-full transition-all duration-300"
+          style={getSoundIndicatorStyles()}
+        ></div>
+  
+        {/* Imagen del vehículo sin borde o contorno */}
+        <img
+          src="car.png"
+          alt="Vista superior de un vehículo blanco"
+          className="w-full object-contain"
+        />
+  
+        {/* Botón de información */}
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+         className="absolute bottom-2 right-2 bg-gray-800 text-white text-sm font-medium py-1 px-3 rounded-full z-20"
+        >
+          {showDetails ? "Hide Info" : "Sound Info"}
+        </button>
       </div>
-
-      {/* Visualización del vehículo con alerta */}
-      <div className="flex-1 relative flex justify-center items-center px-4">
-        {/* Contenedor principal del vehículo */}
-        <div className="w-full max-w-xs bg-white rounded-lg relative overflow-hidden shadow-sm">
-          {/* Alerta con pulso rojo - posición ajustada según dirección del sonido */}
-          <div
-            className="absolute bg-red-500 rounded-full transition-all duration-300"
-            style={getSoundIndicatorStyles()}
-          ></div>
-
-          {/* Imagen del vehículo */}
-          <img
-            src="car.png"
-            alt="Vista superior de un vehículo blanco"
-            className="w-full object-contain relative z-10"
-          />
-
-          {/* Botón de información */}
+    </div>
+  
+    {/* Panel de información - aparece cuando showDetails es true */}
+    {showDetails && (
+      <div className="absolute bottom-2 left-2 right-2 max-h-[40%] overflow-auto bg-white rounded-lg shadow-lg p-3 z-30 border border-gray-200">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-bold text-gray-800 flex items-center">
+            <AlertTriangle className="text-red-500 mr-2" size={16} />
+            Critical Sound Detected
+          </h3>
           <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="absolute bottom-3 right-3 bg-gray-800 text-white text-xs font-medium py-1 px-2 rounded-full z-20"
+            onClick={() => setShowDetails(false)}
+            className="text-gray-500"
           >
-            {showDetails ? "Hide Info" : "Sound Info"}
+            ✕
           </button>
         </div>
-      </div>
-
-      {/* Panel de información - aparece cuando showDetails es true */}
-      {showDetails && (
-        <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg shadow-lg p-4 z-30 border border-gray-200">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-gray-800 flex items-center">
-              <AlertTriangle className="text-red-500 mr-2" size={16} />
-              Critical Sound Detected
-            </h3>
-            <button
-              onClick={() => setShowDetails(false)}
-              className="text-gray-500"
-            >
-              ✕
-            </button>
+  
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <p className="text-gray-500">Type</p>
+            <p className="font-medium">{criticalSounds[detectedSound].name}</p>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-gray-500">Type</p>
-              <p className="font-medium">
-                {criticalSounds[detectedSound].name}
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-500">Direction</p>
-              <p className="font-medium">{soundDirection}</p>
-            </div>
-            <div>
-              <p className="text-gray-500">Intensity</p>
-              <div className="flex items-center">
-                <Volume2 className="text-gray-600 mr-1" size={14} />
-                <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
-                  <div
-                    className="h-full bg-red-500 transition-all duration-300"
-                    style={{ width: `${soundIntensity * 100}%` }}
-                  ></div>
-                </div>
-                <span className="ml-1 text-xs text-gray-600">
-                  {Math.round(soundIntensity * 100)}%
-                </span>
+          <div>
+            <p className="text-gray-500">Direction</p>
+            <p className="font-medium">{soundDirection}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">Intensity</p>
+            <div className="flex items-center">
+              <Volume2 className="text-gray-600 mr-1" size={14} />
+              <div className="h-2 bg-gray-200 rounded-full flex-1 overflow-hidden">
+                <div
+                  className="h-full bg-red-500 transition-all duration-300"
+                  style={{ width: `${soundIntensity * 100}%` }}
+                ></div>
               </div>
-            </div>
-            <div>
-              <p className="text-gray-500">Est. Decibels</p>
-              <p className="font-medium">
-                {criticalSounds[detectedSound].decibels}
-              </p>
+              <span className="ml-1 text-xs text-gray-600">
+                {Math.round(soundIntensity * 100)}%
+              </span>
             </div>
           </div>
-
-          <div className="mt-3">
-            <p className="text-gray-500 text-sm">Recommended Action</p>
-            <p className="text-sm font-medium text-gray-800">
-              {criticalSounds[detectedSound].action}
-            </p>
+          <div>
+            <p className="text-gray-500">Est. Decibels</p>
+            <p className="font-medium">{criticalSounds[detectedSound].decibels}</p>
           </div>
         </div>
-      )}
-    </div>
+  
+        <div className="mt-3">
+          <p className="text-gray-500 text-sm">Recommended Action</p>
+          <p className="text-sm font-medium text-gray-800">
+            {criticalSounds[detectedSound].action}
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
   );
 }
