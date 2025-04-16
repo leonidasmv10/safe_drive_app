@@ -88,7 +88,7 @@ export default function Login() {
             <input
               type="text"
               id="username"
-              placeholder="pepe@gmail.com"
+              placeholder="Username"
               className="w-full py-3 pl-12 pr-3 rounded-full bg-white border border-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300"
               value={username}
               onChange={handleInputChange}
@@ -96,7 +96,7 @@ export default function Login() {
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-xs text-gray-500">
               <span className="absolute -top-2 left-12 bg-white px-1">
-                Mail
+                Username
               </span>
             </div>
           </div>

@@ -33,7 +33,7 @@ function App() {
       if (data.location) {
         const { lat, lng } = data.location;
         setLocation({ latitude: lat, longitude: lng });
-        console.log("Ubicación actualizada:", lat, lng);
+       
       } else {
         console.warn("No se pudo obtener la ubicación:", data);
       }
