@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "@/App.css";
-
+import { API_URL } from '@/api/config';
 export default function RecoverPassword() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ export default function RecoverPassword() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/user/recover-password/",
+        `${API_URL}/user/recover-password/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "@/components/UserSettings/userSettings.css";
+import { API_URL } from '@/api/config';
 
 export default function UserSettings() {
   const navigate = useNavigate();
-  const API_URL = "http://localhost:8000";
   const token = localStorage.getItem("token");
 
   const headers = {

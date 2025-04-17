@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "@/App.css";
-
+import { API_URL } from '@/api/config';
 export default function Register() {
   const navigate = useNavigate();
   // Estados para los campos del formulario
@@ -61,7 +61,7 @@ export default function Register() {
 
     try {
       // Enviar la petición POST al servidor
-      const response = await fetch("http://localhost:8000/user/register/", {
+      const response = await fetch(`${API_URL}/user/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

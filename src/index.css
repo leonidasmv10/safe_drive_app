@@ -2,6 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@keyframes beam-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.05);
+  }
+}
+
+.fade-in {
+  opacity: 1;
+  transition: opacity 0.4s ease-in;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.4s ease-out;
+}
+
+.beam {
+  position: fixed;
+  top: 0;
+  height: 100%;
+  width: 24px;
+  z-index: 40;
+  pointer-events: none;
+  animation: beam-pulse 1s ease-in-out infinite;
+  opacity: 0;
+}
+
+.beam-left {
+  left: 0;
+  background: linear-gradient(to right, #ff4d6d, transparent);
+}
+
+.beam-right {
+  right: 0;
+  background: linear-gradient(to left, #ff4d6d, transparent);
+}
+
 /* 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

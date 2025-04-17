@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "@/App.css";
-
+import { API_URL } from '@/api/config';
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const { uidb64, token } = useParams();
@@ -24,7 +24,7 @@ export default function ResetPasswordPage() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/user/reset-password/${uidb64}/${token}/`,
+        `${API_URL}/user/reset-password/${uidb64}/${token}/`,
         {
           method: "POST",
           headers: {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import WarningAlert from "./WarningAlert";
+import WarningAlert from "@/components/shared/WarningAlert";
+import AnimatedBorder from "@/components/shared/AnimatedBorder";
 
 const NotificationLayout = () => {
   const [alerts, setAlerts] = useState([]);
@@ -42,7 +43,14 @@ const NotificationLayout = () => {
   }, []);
 
   return (
+    <>
+    {alerts.map((alert) => (
+      <AnimatedBorder    key={alert.id}
+      direction={(alert.direction)} />
+    ))}
+
     <div className="fixed top-4 right-4 z-50 w-80">
+      
       {alerts.map((alert) => (
         <WarningAlert
           key={alert.id}
@@ -54,6 +62,7 @@ const NotificationLayout = () => {
         />
       ))}
     </div>
+    </>
   );
 };
 
