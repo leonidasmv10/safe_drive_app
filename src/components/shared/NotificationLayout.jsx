@@ -20,8 +20,8 @@ const NotificationLayout = () => {
 
         const data = await res.json();
         if (!Array.isArray(data) || data.length === 0) return;
-        console.log(data)
-      
+        // console.log(data)
+
         const alertsWithId = data.map((item) => ({
           ...item,
           id: Date.now() + Math.random(),
@@ -36,7 +36,7 @@ const NotificationLayout = () => {
       } catch (err) {
         console.error("Error fetching notifications", err);
       }
-    }, 5000); 
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);

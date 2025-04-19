@@ -9,12 +9,19 @@ export default function Layout() {
   if (!token) return <Navigate to="/" replace />;
 
   return (
-    <div className="w-screen h-screen overflow-hidden flex flex-col bg-gray-50">
+    <div
+      className="app-container"
+      style={{
+        height: "100vh",
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
       <main className="flex-grow overflow-hidden">
         <Outlet />
       </main>
       <Navigation />
-      <NotificationLayout/>
+      <NotificationLayout />
     </div>
   );
 }

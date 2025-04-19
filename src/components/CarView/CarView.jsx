@@ -226,9 +226,7 @@ export default function CarView() {
   return (
     <div className="flex flex-col h-screen relative overflow-hidden bg-gray-200">
     {/* Alerta */}
-    <div className="px-4 pt-4">
-      {alertVisible && <WarningAlert direction={soundDirection} />}
-    </div>
+    
   
     {/* Visualización del vehículo con alerta */}
     <div className="flex-1  flex justify-center items-center px-4">

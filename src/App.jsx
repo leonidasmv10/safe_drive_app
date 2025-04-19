@@ -13,7 +13,9 @@ import UserSettings from "@/components/UserSettings/userSettings";
 import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
 import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
 import Layout from "./Layout";
-import Test from "./components/Test";
+import AudioDetector from "./components/Test";
+import SimpleAudioDetector from "./components/TestAudio";
+import Test from "./components/TestV";
 
 function App() {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
@@ -33,7 +35,6 @@ function App() {
       if (data.location) {
         const { lat, lng } = data.location;
         setLocation({ latitude: lat, longitude: lng });
-       
       } else {
         console.warn("No se pudo obtener la ubicación:", data);
       }
@@ -55,12 +56,17 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/recover-password" element={<RecoverPassword />} />
-        <Route path="/reset-password/:uidb64/:token" element={<ResetPassword />} />
+        <Route
+          path="/reset-password/:uidb64/:token"
+          element={<ResetPassword />}
+        />
 
         {/* Rutas con Layout */}
         <Route element={<Layout />}>
           <Route path="/map" element={<Map location={location} />} />
-          <Route path="/test" element={<Test />} />
+          <Route path="/test" element={<AudioDetector />} />
+          <Route path="/test_audio" element={<SimpleAudioDetector />} />
+          <Route path="/test_v" element={<Test />} />
           <Route path="/car-view" element={<CarView location={location} />} />
           <Route path="/settings" element={<UserSettings />} />
           <Route path="/edit-profile" element={<EditProfile />} />
