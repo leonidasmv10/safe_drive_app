@@ -1,15 +1,14 @@
 export const ROUTES = {
-  HOME: '/',
-  LOGIN: '/',
-  REGISTER: '/register',
-  RECOVER_PASSWORD: '/recover-password',
-  RESET_PASSWORD: '/reset-password/:uidb64/:token',
-  MAP: '/map',
-  CAR_VIEW: '/car-view',
-  SETTINGS: '/settings',
-  EDIT_PROFILE: '/edit-profile',
-  CHANGE_PASSWORD: '/change-password',
-  TEST_AUDIO: '/test_audio',
+  HOME: "/",
+  LOGIN: "/",
+  REGISTER: "/register",
+  RECOVER_PASSWORD: "/recover-password",
+  RESET_PASSWORD: "/reset-password/:uidb64/:token",
+  MAP: "/map",
+  CAR_VIEW: "/car-view",
+  SETTINGS: "/settings",
+  EDIT_PROFILE: "/edit-profile",
+  CHANGE_PASSWORD: "/change-password",
 };
 
 export const PUBLIC_ROUTES = [
@@ -27,4 +26,4 @@ export const PRIVATE_ROUTES = [
   ROUTES.CHANGE_PASSWORD,
   ROUTES.TEST,
   ROUTES.TEST_AUDIO,
-]; 
+];

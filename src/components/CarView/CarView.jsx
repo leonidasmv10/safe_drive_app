@@ -282,47 +282,6 @@ export default function CarView() {
     }
   };
 
-  // Mostrar alerta de advertencia
-  const showWarningAlert = (data) => {
-    if (!data || data.predicted_label === "null") return;
-
-    console.log("Respuesta del servidor (raw):", data.predicted_label);
-
-    // Usar directamente el valor del servidor
-    const alertType = data.predicted_label;
-    let direction = "LEFT";
-
-    // Mejorar la lógica de detección de dirección
-    const label = data.predicted_label.toLowerCase();
-    if (label.includes("right")) {
-      direction = "RIGHT";
-    } else if (label.includes("left")) {
-      direction = "LEFT";
-    } else if (label.includes("front")) {
-      direction = "FRONT";
-    } else if (label.includes("rear") || label.includes("back")) {
-      direction = "REAR";
-    }
-
-    console.log("Detección procesada:", {
-      label: data.predicted_label,
-      alertType,
-      direction
-    });
-
-    setAlertType(alertType);
-    setSoundDirection(direction);
-    setShowAlert(true);
-
-    if (alertTimerRef.current) {
-      clearTimeout(alertTimerRef.current);
-    }
-
-    alertTimerRef.current = setTimeout(() => {
-      setShowAlert(false);
-    }, DURACION_ALERTA);
-  };
-
   // Procesar los datos de audio grabados
   const processAudioData = async () => {
     setIsRecording(false);
@@ -367,21 +326,9 @@ export default function CarView() {
 
       const data = await response.json();
       
-      console.log("Respuesta completa del servidor:", data);
-      
-      // Solo mostrar alerta y agregar al mapa si la detección no es null
+      // Solo mostrar alerta si la detección no es null
       if (data && data.predicted_label && data.predicted_label !== "null") {
         showWarningAlert(data);
-        
-        // Usar directamente el valor del servidor
-        const soundType = data.predicted_label;
-        
-        // Agregar la detección al mapa solo si no es null
-        addDetection({
-          position: [location.latitude, location.longitude],
-          type: "critical",
-          description: CRITICAL_SOUNDS[soundType]?.name || soundType
-        });
       }
     } catch (error) {
       console.error("Error al procesar audio:", error);
@@ -393,6 +340,39 @@ export default function CarView() {
         startAutoDetection();
       }
     }
+  };
+
+  // Mostrar alerta de advertencia
+  const showWarningAlert = (data) => {
+    if (!data || data.predicted_label === "null") return;
+
+    // Usar directamente el valor del servidor
+    const alertType = data.predicted_label;
+    let direction = "LEFT";
+
+    // Mejorar la lógica de detección de dirección
+    const label = data.predicted_label.toLowerCase();
+    if (label.includes("right")) {
+      direction = "RIGHT";
+    } else if (label.includes("left")) {
+      direction = "LEFT";
+    } else if (label.includes("front")) {
+      direction = "FRONT";
+    } else if (label.includes("rear") || label.includes("back")) {
+      direction = "REAR";
+    }
+
+    setAlertType(alertType);
+    setSoundDirection(direction);
+    setShowAlert(true);
+
+    if (alertTimerRef.current) {
+      clearTimeout(alertTimerRef.current);
+    }
+
+    alertTimerRef.current = setTimeout(() => {
+      setShowAlert(false);
+    }, DURACION_ALERTA);
   };
 
   // Detener todos los procesos activos

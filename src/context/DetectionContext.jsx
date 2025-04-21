@@ -18,15 +18,33 @@ export const DetectionProvider = ({ children }) => {
   }, [detections]);
 
   const addDetection = (detection) => {
+    const now = Date.now();
+    
+    // Verificar si ya existe una detección similar en los últimos 5 segundos
+    const recentSimilarDetection = detections.find(d => {
+      const timeDiff = now - d.timestamp;
+      const isSameType = d.description === detection.description;
+      const isNearby = Math.abs(d.position[0] - detection.position[0]) < 0.0001 &&
+                       Math.abs(d.position[1] - detection.position[1]) < 0.0001;
+      
+      return timeDiff < 5000 && isSameType && isNearby;
+    });
+
+    if (recentSimilarDetection) {
+      console.log('Detección similar encontrada, ignorando nueva detección');
+      return;
+    }
+
     const newDetection = {
-      id: Date.now(), // Usamos timestamp como ID único
+      id: now,
       position: detection.position,
       type: detection.type,
-      timestamp: Date.now(),
+      timestamp: now,
       description: detection.description,
-      expiresAt: Date.now() + 60 * 1000 // 1 minuto en milisegundos
+      expiresAt: now + 60 * 1000 // 1 minuto en milisegundos
     };
     
+    console.log('Agregando nueva detección:', newDetection);
     setDetections(prev => [...prev, newDetection]);
   };
 

@@ -1,73 +1,57 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from "react-leaflet";
 import { Icon } from "leaflet";
 import { useLocation } from "../../context/LocationContext";
 import { useDetection } from "../../context/DetectionContext";
+import { useAudio } from "@/context/AudioContext";
+import WarningAlert from "@/components/shared/WarningAlert";
+import "leaflet/dist/leaflet.css";
 
 const { BaseLayer, Overlay } = LayersControl;
 
-// Simulación de detecciones de sonidos críticos
-const initialDetections = [
-  {
-    id: 1,
-    position: [41.6701, 1.2728],
-    type: "critical",
-    timestamp: Date.now(),
-    description: "Sonido crítico detectado: Claxon prolongado"
-  },
-  {
-    id: 2,
-    position: [41.6715, 1.2703],
-    type: "warning",
-    timestamp: Date.now(),
-    description: "Sonido de advertencia: Frenada brusca"
-  },
-  {
-    id: 3,
-    position: [41.6689, 1.2745],
-    type: "critical",
-    timestamp: Date.now(),
-    description: "Sonido crítico detectado: Colisión"
-  }
-];
+// Memoizar el icono para evitar recreaciones
+const markerIcon = new Icon({
+  iconUrl: import.meta.env.VITE_LEAFLET_MARKER_URL,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
+// Memoizar los iconos de detección
 const getMarkerIcon = (type) => {
   const iconUrl = type === 'critical' 
-    ? 'https://cdn-icons-png.flaticon.com/512/103/103228.png' // Icono de sirena
+    ? 'https://cdn-icons-png.flaticon.com/512/103/103228.png'
     : type === 'warning'
-    ? 'https://cdn-icons-png.flaticon.com/512/103/103228.png' // Icono de claxon
-    : 'https://cdn-icons-png.flaticon.com/512/103/103228.png'; // Icono por defecto
+    ? 'https://cdn-icons-png.flaticon.com/512/103/103228.png'
+    : 'https://cdn-icons-png.flaticon.com/512/103/103228.png';
 
   return new Icon({
     iconUrl,
-    iconSize: [32, 32], // Aumentamos el tamaño para mejor visibilidad
-    iconAnchor: [16, 16], // Centramos el icono
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   });
 };
+
+const criticalIcon = getMarkerIcon('critical');
+const warningIcon = getMarkerIcon('warning');
+const defaultIcon = getMarkerIcon('default');
 
 function RecenterMap({ position, accuracy }) {
   const map = useMap();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (position) {
-      let zoomLevel = 18; // Zoom más cercano por defecto
+      let zoomLevel = 18;
       if (accuracy) {
-        if (accuracy < 10) {
-          zoomLevel = 19; // Muy precisa (GPS)
-        } else if (accuracy < 20) {
-          zoomLevel = 18; // Precisa
-        } else if (accuracy < 50) {
-          zoomLevel = 17; // Moderadamente precisa
-        } else if (accuracy < 100) {
-          zoomLevel = 16; // Poco precisa
-        } else {
-          zoomLevel = 15; // Muy poco precisa
-        }
+        if (accuracy < 10) zoomLevel = 19;
+        else if (accuracy < 20) zoomLevel = 18;
+        else if (accuracy < 50) zoomLevel = 17;
+        else if (accuracy < 100) zoomLevel = 16;
+        else zoomLevel = 15;
       }
 
-      map.flyTo(position, zoomLevel, {
-        duration: 1.5,
-        easeLinearity: 0.25
+      map.setView(position, zoomLevel, {
+        animate: true,
+        duration: 1
       });
     }
   }, [position, accuracy, map]);
@@ -113,11 +97,7 @@ function SignalQualityIndicator({ accuracy }) {
 }
 
 function DetectionMarker({ detection, onRemove }) {
-  const [timeLeft, setTimeLeft] = useState(() => {
-    const now = Date.now();
-    const remaining = Math.max(0, Math.floor((detection.expiresAt - now) / 1000));
-    return remaining;
-  });
+  const [timeLeft, setTimeLeft] = useState(300);
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
@@ -136,15 +116,15 @@ function DetectionMarker({ detection, onRemove }) {
     return () => clearInterval(timer);
   }, [detection.id, onRemove]);
 
+  if (isExpired) return null;
+
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-
-  if (isExpired) return null;
 
   return (
     <Marker
       position={detection.position}
-      icon={getMarkerIcon(detection.type)}
+      icon={detection.type === 'critical' ? criticalIcon : warningIcon}
     >
       <Popup>
         <div>
@@ -175,6 +155,22 @@ function DetectionMarker({ detection, onRemove }) {
 export default function Map() {
   const { location, loading, error, accuracy } = useLocation();
   const { detections, removeDetection } = useDetection();
+  const { showAlert, alertType, soundDirection, setShowAlert } = useAudio();
+  const [mapReady, setMapReady] = useState(false);
+
+  // Verificar cuando la ubicación está lista
+  useEffect(() => {
+    if (location?.latitude && location?.longitude) {
+      setMapReady(true);
+    }
+  }, [location]);
+
+  // Memoizar la posición para evitar re-renders innecesarios
+  const position = useMemo(() => {
+    return location?.latitude && location?.longitude
+      ? [location.latitude, location.longitude]
+      : [0, 0];
+  }, [location?.latitude, location?.longitude]);
 
   if (error) {
     return (
@@ -208,42 +204,19 @@ export default function Map() {
     );
   }
 
-  if (!location.latitude || !location.longitude) {
+  if (!mapReady) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center p-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-gray-600 font-semibold">Obteniendo ubicación GPS...</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Por favor, espera mientras el GPS se estabiliza.
-            Esto puede tardar unos segundos.
-          </p>
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Obteniendo ubicación GPS...</p>
         </div>
       </div>
     );
   }
 
-  const position = [location.latitude, location.longitude];
-
   return (
-    <div className="relative w-full h-screen">
-      {loading && (
-        <div className="absolute top-4 left-4 right-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg shadow-lg z-10">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm">
-                Mejorando precisión GPS...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="relative h-screen">
       <div className="absolute top-0 left-0 right-0 bottom-0 z-0">
         <MapContainer
           center={position}
@@ -251,18 +224,25 @@ export default function Map() {
           style={{ height: "100vh", width: "100%" }}
           zoomControl={true}
           scrollWheelZoom={true}
+          dragging={true}
+          doubleClickZoom={true}
+          attributionControl={false}
         >
           <LayersControl position="topright">
             <BaseLayer checked name="Mapa">
               <TileLayer
                 attribution='&copy; <a href="https://osm.org/">OpenStreetMap</a>'
                 url={import.meta.env.VITE_OPENSTREETMAP_URL}
+                maxZoom={19}
+                minZoom={3}
               />
             </BaseLayer>
             <BaseLayer name="Satélite">
               <TileLayer
                 attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+                minZoom={3}
               />
             </BaseLayer>
             <Overlay checked name="Detecciones de sonido">
@@ -275,14 +255,8 @@ export default function Map() {
               ))}
             </Overlay>
           </LayersControl>
-          <Marker
-            position={position}
-            icon={new Icon({
-              iconUrl: import.meta.env.VITE_LEAFLET_MARKER_URL,
-              iconSize: [25, 41],
-              iconAnchor: [12, 41],
-            })}
-          >
+          
+          <Marker position={position} icon={markerIcon}>
             <Popup>
               <div>
                 <p className="font-semibold">¡Estás aquí!</p>
@@ -303,6 +277,15 @@ export default function Map() {
         </MapContainer>
       </div>
       <SignalQualityIndicator accuracy={accuracy} />
+      {showAlert && (
+        <div className="absolute top-4 left-0 right-0 z-[1000]">
+          <WarningAlert
+            type={alertType === "Sirena" ? "ambulance" : "police"}
+            direction={soundDirection}
+            onClose={() => setShowAlert(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

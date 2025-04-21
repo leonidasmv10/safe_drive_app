@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useAudio } from "@/context/AudioContext";
+import WarningAlert from "@/components/shared/WarningAlert";
 import "@/components/UserSettings/userSettings.css";
 
 export default function UserSettings() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { showAlert, alertType, soundDirection, setShowAlert } = useAudio();
   const API_URL = "http://localhost:8000";
   const token = localStorage.getItem("token");
 
@@ -184,6 +187,16 @@ export default function UserSettings() {
 
   return (
     <div className="pb-20 pt-6 px-4 bg-gray-50 min-h-screen">
+      {showAlert && (
+        <div className="mb-4">
+          <WarningAlert
+            type={alertType === "Sirena" ? "ambulance" : "police"}
+            direction={soundDirection}
+            onClose={() => setShowAlert(false)}
+          />
+        </div>
+      )}
+
       <div className="max-w-md mx-auto">
         <header className="mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Ajustes</h1>
