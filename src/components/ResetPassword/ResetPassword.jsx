@@ -13,18 +13,19 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError("");
-    setMessage("");
 
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
 
-    setLoading(true);
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/user/reset-password/${uidb64}/${token}/`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/user/reset-password/${uidb64}/${token}/`,
         {
           method: "POST",
           headers: {

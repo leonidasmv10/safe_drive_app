@@ -1,9 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "@/components/UserSettings/userSettings.css";
 
 export default function UserSettings() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const API_URL = "http://localhost:8000";
   const token = localStorage.getItem("token");
 
@@ -14,20 +16,7 @@ export default function UserSettings() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch(`${API_URL}/user/logout/`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          refresh: localStorage.getItem("refresh_token"),
-        }),
-      });
-
-      if (res.ok) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refresh_token");
-        alert("Sesión cerrada");
-        navigate("/");
-      }
+      await logout();
     } catch (error) {
       console.error("Error cerrando sesión:", error);
     }
@@ -75,10 +64,8 @@ export default function UserSettings() {
         return;
       }
 
-      localStorage.removeItem("token");
-      localStorage.removeItem("refresh_token");
+      await logout();
       alert("Cuenta eliminada correctamente");
-      navigate("/");
     } catch (error) {
       console.error("Error eliminando cuenta:", error);
       alert(

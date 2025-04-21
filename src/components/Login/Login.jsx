@@ -1,19 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { ROUTES } from "../../config/routes";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/car-view");
-    }
-  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
@@ -21,33 +17,16 @@ export default function Login() {
     else if (id === "password") setPassword(value);
   };
 
-  const userSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/user/login/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.access) {
-        // Guardar el token en localStorage
-        localStorage.setItem("token", result.access);
-        localStorage.setItem("refresh_token", result.refresh);
-
-        alert("Inicio de sesión exitoso");
-        navigate("/map");
-      } else {
-        setError(result.detail || "Usuario o contraseña incorrectos");
-      }
+      await login(username, password);
+      navigate(ROUTES.MAP);
     } catch (err) {
-      setError("Hubo un error al conectar con el servidor");
-      console.error(err);
+      setError(err.message || "Usuario o contraseña incorrectos");
     } finally {
       setLoading(false);
     }
@@ -69,7 +48,7 @@ export default function Login() {
         )}
 
         {/* Formulario */}
-        <form onSubmit={userSubmit} className="w-full space-y-4">
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
           {/* Campo de correo/username */}
           <div className="relative">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -159,7 +138,7 @@ export default function Login() {
           {/* Olvidaste contraseña */}
           <button
             type="button"
-            onClick={() => navigate("/recover-password")}
+            onClick={() => navigate(ROUTES.RECOVER_PASSWORD)}
             className="w-full text-center text-purple-600 hover:text-purple-800 transition duration-200 cursor-pointer py-1"
           >
             ¿Olvidaste tu contraseña?
@@ -174,11 +153,11 @@ export default function Login() {
         <div className="flex-grow h-px bg-gray-200"></div>
       </div>
 
-      {/* Botón de crear cuenta - Fuera del formulario y de la imagen */}
+      {/* Botón de crear cuenta */}
       <div className="w-full max-w-md px-6 mb-8 z-10 relative">
         <button
           type="button"
-          onClick={() => navigate("/register")}
+          onClick={() => navigate(ROUTES.REGISTER)}
           className="w-full py-3 px-4 border border-purple-400 text-purple-600 font-medium rounded-full hover:bg-purple-50 transition duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-300 active:bg-purple-100"
         >
           CREAR CUENTA NUEVA

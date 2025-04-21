@@ -16,14 +16,13 @@ export default function RecoverPassword() {
     setMessage("");
 
     try {
-      const response = await fetch(
-        "http://localhost:8000/user/recover-password/",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        }
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/recover-password/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
       const result = await response.json();
 

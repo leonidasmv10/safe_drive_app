@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import WarningAlert from "@/components/shared/WarningAlert";
+import { useLocation } from "@/context/LocationContext";
+import { useDetection } from "../context/DetectionContext";
 
 export default function TestAudio() {
   // Estados
@@ -24,10 +26,15 @@ export default function TestAudio() {
   const audioDataRef = useRef([]);
   const alertTimerRef = useRef(null);
 
+  // Contexto
+  const { location } = useLocation();
+  const { addDetection } = useDetection();
+
   // Constantes
   const UMBRAL = 50;
   const DURACION_GRABACION = 4000;
   const DURACION_ALERTA = 5000;
+  const API_URL = import.meta.env.VITE_API_URL;
 
   // Inicializar componentes de audio al montar
   useEffect(() => {
@@ -279,7 +286,7 @@ export default function TestAudio() {
     }
 
     // Determinar tipo de alerta y dirección basado en la predicción
-    let alertType = "police"; // Valor predeterminado (BOCINA)
+    let alertType = "BOCINA"; // Valor predeterminado (BOCINA)
     let direction = "LEFT"; // Valor predeterminado
 
     const label = data.predicted_label.toLowerCase();
@@ -334,11 +341,13 @@ export default function TestAudio() {
       // Preparar datos para envío
       const formData = new FormData();
       formData.append("audio", audioBlob, "evento.wav");
+      formData.append("latitude", location.latitude);
+      formData.append("longitude", location.longitude);
 
       // Enviar al servidor
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/models_ai/detection-critical-sound/",
+          `${API_URL}/models_ai/detection-critical-sound/`,
           {
             method: "POST",
             body: formData,
@@ -356,6 +365,13 @@ export default function TestAudio() {
         if (data && data.predicted_label && data.predicted_label !== "null") {
           showWarningAlert(data);
         }
+
+        // Añadir detección al mapa
+        addDetection({
+          position: [location.latitude, location.longitude],
+          type: "critical",
+          description: "Sonido crítico detectado: Claxon"
+        });
       } catch (error) {
         console.error("Error de comunicación:", error.message);
       }

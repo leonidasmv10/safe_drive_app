@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Car, AlertTriangle } from "lucide-react";
 
-const WarningAlert = ({ direction = "LEFT", type = "police", onClose }) => {
+const WarningAlert = ({ direction = "LEFT", type = "Sirena", onClose }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [isPulsing, setIsPulsing] = useState(true);
 
