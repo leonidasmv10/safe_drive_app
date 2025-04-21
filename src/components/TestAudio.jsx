@@ -1,352 +1,538 @@
 import { useState, useEffect, useRef } from "react";
+import WarningAlert from "@/components/shared/WarningAlert";
 
-const SimpleAudioDetector = () => {
-  // Estados básicos
-  const [isActive, setIsActive] = useState(false);
+export default function TestAudio() {
+  // Estados
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [autoMode, setAutoMode] = useState(false);
   const [volume, setVolume] = useState(0);
-  const [lastPrediction, setLastPrediction] = useState(null);
-  const [log, setLog] = useState([]);
+  const [lastResponse, setLastResponse] = useState(null);
+  const [detectionStatus, setDetectionStatus] = useState("Esperando");
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState("police"); // Tipo de alerta (police/ambulance)
+  const [alertDirection, setAlertDirection] = useState("LEFT");
 
   // Referencias
-  const audioContextRef = useRef(null);
-  const sourceRef = useRef(null);
-  const analyserRef = useRef(null);
   const streamRef = useRef(null);
-  const wsRef = useRef(null);
-  const intervalRef = useRef(null);
-  const audioBufferRef = useRef([]);
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+  const timerRef = useRef(null);
+  const checkVolumeIntervalRef = useRef(null);
+  const audioDataRef = useRef([]);
+  const alertTimerRef = useRef(null);
 
-  // Agregar mensaje al log
-  const addLog = (message) => {
-    // console.log(message);
-    setLog((prev) => [
-      `${new Date().toLocaleTimeString()}: ${message}`,
-      ...prev.slice(0, 9),
-    ]);
-  };
+  // Constantes
+  const UMBRAL = 50;
+  const DURACION_GRABACION = 4000;
+  const DURACION_ALERTA = 5000;
 
-  // Inicializar sistema de audio
-  const initAudio = async () => {
-    try {
-      addLog("Iniciando sistema de audio...");
-
-      // Crear contexto de audio
-      audioContextRef.current = new (window.AudioContext ||
-        window.webkitAudioContext)();
-
-      // Solicitar acceso al micrófono
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
-      });
-
-      streamRef.current = stream;
-      addLog(`Micrófono conectado: ${stream.getAudioTracks()[0].label}`);
-
-      // Crear nodos de audio
-      sourceRef.current =
-        audioContextRef.current.createMediaStreamSource(stream);
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 2048;
-
-      // Conectar nodos
-      sourceRef.current.connect(analyserRef.current);
-
-      // Iniciar medición de volumen
-      measureVolume();
-
-      return true;
-    } catch (error) {
-      addLog(`Error al inicializar audio: ${error.message}`);
-      return false;
-    }
-  };
-
-  // Medir volumen para visualización
-  const measureVolume = () => {
-    if (!analyserRef.current) return;
-
-    const bufferLength = analyserRef.current.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const updateVolume = () => {
-      if (!analyserRef.current) return;
-
-      analyserRef.current.getByteFrequencyData(dataArray);
-
-      // Calcular volumen promedio
-      const average =
-        dataArray.reduce((sum, value) => sum + value, 0) / bufferLength;
-      setVolume(Math.round(average));
-
-      requestAnimationFrame(updateVolume);
-    };
-
-    updateVolume();
-  };
-
-  // Inicializar WebSocket
-  const initWebSocket = () => {
-    const token = localStorage.getItem("token");
-    const wsUrl = "ws://127.0.0.1:8000/ws/audio/?token=" + token;
-
-    addLog("Conectando WebSocket...");
-
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.close();
-    }
-
-    wsRef.current = new WebSocket(wsUrl);
-    wsRef.current.binaryType = "arraybuffer";
-
-    wsRef.current.onopen = () => {
-      addLog("WebSocket conectado");
-
-      // Enviar configuración
-      wsRef.current.send(
-        JSON.stringify({
-          type: "config",
-          sampleRate: audioContextRef.current.sampleRate,
-          frameTime: 2000,
-        })
-      );
-    };
-
-    wsRef.current.onmessage = (event) => {
-      try {
-        if (event.data instanceof ArrayBuffer) return;
-
-        const data = JSON.parse(event.data);
-        // addLog(`Mensaje recibido: ${data.type}`);
-        // console.log(data.all_results);
-
-        if (data.type === "detection_result") {
-          addLog(`🎉 DETECCIÓN: ${JSON.stringify(data.all_results, null, 2)}`);
-
-          setLastPrediction(data);
-        }
-      } catch (error) {
-        addLog(`Error al procesar mensaje: ${error.message}`);
-      }
-    };
-
-    wsRef.current.onclose = () => {
-      addLog("WebSocket desconectado");
-    };
-
-    wsRef.current.onerror = () => {
-      addLog("Error en WebSocket");
-    };
-  };
-
-  // Iniciar captura de audio
-  const startCapture = async () => {
-    // Inicializar audio si es necesario
-    if (!audioContextRef.current) {
-      const success = await initAudio();
-      if (!success) return;
-    }
-
-    // Reanudar contexto si está suspendido
-    if (audioContextRef.current.state === "suspended") {
-      await audioContextRef.current.resume();
-    }
-
-    // Inicializar WebSocket
-    initWebSocket();
-
-    // Esperar a que WebSocket esté listo
-    setTimeout(() => {
-      // Iniciar streaming
-      wsRef.current.send(
-        JSON.stringify({
-          type: "start_streaming",
-          session_id: Date.now().toString(36),
-          timestamp: Date.now(),
-          sample_rate: audioContextRef.current.sampleRate,
-        })
-      );
-
-      // Configurar intervalo para capturar y enviar audio cada 2 segundos
-      intervalRef.current = setInterval(() => {
-        captureAndSendAudio();
-      }, 2000);
-
-      setIsActive(true);
-      addLog("Transmisión iniciada");
-    }, 500);
-  };
-
-  // Detener captura de audio
-  const stopCapture = () => {
-    // Detener intervalo
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    // Enviar mensaje de fin de streaming
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          type: "end_streaming",
-          timestamp: Date.now(),
-        })
-      );
-      addLog("Transmisión finalizada");
-    }
-
-    setIsActive(false);
-  };
-
-  // Capturar y enviar audio
-  const captureAndSendAudio = () => {
-    if (
-      !analyserRef.current ||
-      !wsRef.current ||
-      wsRef.current.readyState !== WebSocket.OPEN
-    ) {
-      addLog("No se puede enviar audio: sistema no inicializado");
-      return;
-    }
-
-    try {
-      // Capturar datos de audio
-      const bufferLength = analyserRef.current.fftSize;
-      const audioData = new Float32Array(bufferLength);
-      analyserRef.current.getFloatTimeDomainData(audioData);
-
-      // Verificar si hay sonido (no solo silencio)
-      const rms = Math.sqrt(
-        audioData.reduce((sum, val) => sum + val * val, 0) / bufferLength
-      );
-      const volumen = rms * 1000;
-
-      if (volumen < 1) {
-        // addLog("Audio muy silencioso, no se envía");
-        return;
-      }
-
-      // Enviar metadatos
-      const frameId = Date.now();
-      wsRef.current.send(
-        JSON.stringify({
-          type: "audio_frame",
-          timestamp: Date.now(),
-          frame_id: frameId,
-          volume: volumen,
-          sample_rate: audioContextRef.current.sampleRate,
-          is_final_frame: false,
-        })
-      );
-
-      // Convertir a Int16Array para envío más eficiente
-      const int16Data = new Int16Array(audioData.length);
-      for (let i = 0; i < audioData.length; i++) {
-        int16Data[i] = Math.max(
-          -32768,
-          Math.min(32767, Math.round(audioData[i] * 32767))
-        );
-      }
-
-      // Enviar datos de audio
-      wsRef.current.send(int16Data.buffer);
-      // addLog(
-      //   `Audio enviado: ${
-      //     int16Data.length
-      //   } muestras, volumen: ${volumen.toFixed(2)}`
-      // );
-    } catch (error) {
-      addLog(`Error al enviar audio: ${error.message}`);
-    }
-  };
-
-  // Limpiar recursos al desmontar
+  // Inicializar componentes de audio al montar
   useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    async function setupAudio() {
+      try {
+        // Solicitar acceso al micrófono
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+        });
+        streamRef.current = stream;
+
+        // Crear contexto de audio
+        audioContextRef.current = new (window.AudioContext ||
+          window.webkitAudioContext)();
+
+        // Asegurarse de que esté activo
+        if (audioContextRef.current.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+
+        // Configurar analizador de audio
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        analyserRef.current.fftSize = 256;
+
+        // Conectar fuente al analizador
+        const source = audioContextRef.current.createMediaStreamSource(stream);
+        source.connect(analyserRef.current);
+
+        // Iniciar visualización
+        startVisualization();
+      } catch (error) {
+        console.error("Error en inicialización:", error.message);
       }
+    }
+
+    setupAudio();
+
+    // Limpieza al desmontar
+    return () => {
+      stopAllProcesses();
 
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
 
       if (audioContextRef.current) {
-        audioContextRef.current.close().catch(console.error);
+        audioContextRef.current.close();
       }
 
-      if (wsRef.current) {
-        wsRef.current.close();
+      // Limpiar temporizador de alerta
+      if (alertTimerRef.current) {
+        clearTimeout(alertTimerRef.current);
       }
     };
   }, []);
 
+  // Manejar cambios en autoMode
+  useEffect(() => {
+    if (autoMode) {
+      startAutoDetection();
+    } else {
+      stopAutoDetection();
+    }
+  }, [autoMode]);
+
+  // Detener todos los procesos activos
+  const stopAllProcesses = () => {
+    // Cancelar animación
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+
+    // Cancelar temporizadores e intervalos
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    if (checkVolumeIntervalRef.current) {
+      clearInterval(checkVolumeIntervalRef.current);
+      checkVolumeIntervalRef.current = null;
+    }
+  };
+
+  // Iniciar detección automática
+  const startAutoDetection = () => {
+    setDetectionStatus("Monitoreando audio");
+
+    // Detener intervalo anterior si existe
+    if (checkVolumeIntervalRef.current) {
+      clearInterval(checkVolumeIntervalRef.current);
+    }
+
+    // Crear nuevo intervalo para comprobar volumen
+    checkVolumeIntervalRef.current = setInterval(() => {
+      // No verificar si estamos grabando o procesando
+      if (isRecording || isProcessing) return;
+
+      checkVolumeAndRecord();
+    }, 100);
+  };
+
+  // Detener detección automática
+  const stopAutoDetection = () => {
+    setDetectionStatus("Esperando");
+
+    if (checkVolumeIntervalRef.current) {
+      clearInterval(checkVolumeIntervalRef.current);
+      checkVolumeIntervalRef.current = null;
+    }
+  };
+
+  // Comprobar volumen y grabar si es necesario
+  const checkVolumeAndRecord = () => {
+    if (!analyserRef.current) return;
+
+    const bufferLength = analyserRef.current.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyserRef.current.getByteFrequencyData(dataArray);
+
+    const avgVolume =
+      Array.from(dataArray).reduce((sum, val) => sum + val, 0) /
+      dataArray.length;
+
+    if (avgVolume > UMBRAL) {
+      startRecording();
+    }
+  };
+
+  // Visualización de audio
+  const startVisualization = () => {
+    if (!canvasRef.current || !analyserRef.current) return;
+
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const bufferLength = analyserRef.current.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      animationRef.current = requestAnimationFrame(draw);
+
+      analyserRef.current.getByteFrequencyData(dataArray);
+
+      // Actualizar volumen en el estado
+      const avgVolume =
+        Array.from(dataArray).reduce((sum, val) => sum + val, 0) /
+        dataArray.length;
+      setVolume(Math.round(avgVolume));
+
+      // Dibujar visualización
+      ctx.fillStyle = "#111827";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const barWidth = canvas.width / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = dataArray[i];
+        ctx.fillStyle =
+          barHeight > UMBRAL ? "rgb(239, 68, 68)" : "rgb(59, 130, 246)";
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+        x += barWidth;
+      }
+
+      // Línea de umbral
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height - UMBRAL);
+      ctx.lineTo(canvas.width, canvas.height - UMBRAL);
+      ctx.strokeStyle = "yellow";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    };
+
+    draw();
+  };
+
+  // Iniciar grabación
+  const startRecording = async () => {
+    if (isRecording || isProcessing || !streamRef.current) return;
+
+    try {
+      // Detener la detección automática temporalmente
+      if (checkVolumeIntervalRef.current) {
+        clearInterval(checkVolumeIntervalRef.current);
+        checkVolumeIntervalRef.current = null;
+      }
+
+      // Limpiar temporizador anterior si existe
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+
+      // Crear un nuevo MediaRecorder cada vez (evita problemas de estado)
+      const mediaRecorder = new MediaRecorder(streamRef.current);
+      audioDataRef.current = []; // Limpiar datos anteriores
+
+      // Configurar handlers
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioDataRef.current.push(e.data);
+        }
+      };
+
+      // Iniciar grabación
+      mediaRecorder.start();
+      setIsRecording(true);
+      setDetectionStatus("Grabando audio");
+
+      // Programar detención después de la duración establecida
+      timerRef.current = setTimeout(() => {
+        try {
+          // Detener grabación
+          if (mediaRecorder.state === "recording") {
+            mediaRecorder.stop();
+          }
+
+          // Procesar los datos de audio después de un breve retraso
+          setTimeout(() => {
+            processAudioData();
+          }, 300);
+        } catch (error) {
+          setIsRecording(false);
+
+          // Reiniciar detección automática si está activada
+          if (autoMode) {
+            startAutoDetection();
+          }
+        }
+      }, DURACION_GRABACION);
+    } catch (error) {
+      setIsRecording(false);
+
+      // Reiniciar detección automática si está activada
+      if (autoMode) {
+        startAutoDetection();
+      }
+    }
+  };
+
+  // Mostrar alerta de advertencia basada en la predicción
+  const showWarningAlert = (data) => {
+    if (!data || data.predicted_label === "null") {
+      return;
+    }
+
+    // Determinar tipo de alerta y dirección basado en la predicción
+    let alertType = "police"; // Valor predeterminado (BOCINA)
+    let direction = "LEFT"; // Valor predeterminado
+
+    const label = data.predicted_label.toLowerCase();
+
+    // Determinar tipo según el sonido detectado
+    if (label.includes("ambulance") || label.includes("siren")) {
+      alertType = "ambulance"; // Para mostrar SIRENA
+    }
+
+    // Determinar dirección
+    if (label.includes("right")) {
+      direction = "RIGHT";
+    } else if (label.includes("left")) {
+      direction = "LEFT";
+    }
+
+    // Actualizar estados para mostrar alerta
+    setAlertType(alertType);
+    setAlertDirection(direction);
+    setShowAlert(true);
+
+    // Limpiar temporizador anterior si existe
+    if (alertTimerRef.current) {
+      clearTimeout(alertTimerRef.current);
+    }
+
+    // Configurar temporizador para ocultar alerta después de 5 segundos
+    alertTimerRef.current = setTimeout(() => {
+      setShowAlert(false);
+    }, DURACION_ALERTA);
+  };
+
+  // Procesar los datos de audio grabados
+  const processAudioData = async () => {
+    setIsRecording(false);
+    setIsProcessing(true);
+    setDetectionStatus("Procesando audio");
+
+    try {
+      if (audioDataRef.current.length === 0) {
+        setIsProcessing(false);
+
+        // Reiniciar detección automática si está activada
+        if (autoMode) {
+          startAutoDetection();
+        }
+        return;
+      }
+
+      const audioBlob = new Blob(audioDataRef.current, { type: "audio/webm" });
+
+      // Preparar datos para envío
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "evento.wav");
+
+      // Enviar al servidor
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/models_ai/detection-critical-sound/",
+          {
+            method: "POST",
+            body: formData,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("Respuesta recibida:", data); // Mantenemos solo este console.log
+        setLastResponse(data);
+
+        // Mostrar alerta si hay una predicción diferente a "null"
+        if (data && data.predicted_label && data.predicted_label !== "null") {
+          showWarningAlert(data);
+        }
+      } catch (error) {
+        console.error("Error de comunicación:", error.message);
+      }
+    } catch (error) {
+      console.error("Error al procesar audio:", error.message);
+    } finally {
+      // Limpiar datos de audio
+      audioDataRef.current = [];
+
+      // Restaurar estado
+      setIsProcessing(false);
+      setDetectionStatus("Esperando");
+
+      // Reiniciar detección automática si está activada
+      if (autoMode) {
+        startAutoDetection();
+      }
+    }
+  };
+
+  // Detener grabación manualmente
+  const stopRecording = () => {
+    if (!isRecording) return;
+
+    // Cancelar temporizador
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    processAudioData();
+  };
+
+  // Forzar activación del contexto de audio
+  const forceActivateAudio = async () => {
+    if (!audioContextRef.current) return;
+
+    try {
+      if (audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume();
+      }
+    } catch (error) {
+      console.error("Error al activar audio:", error.message);
+    }
+  };
+
+  // Cerrar alerta manualmente
+  const handleCloseAlert = () => {
+    setShowAlert(false);
+
+    // Limpiar temporizador
+    if (alertTimerRef.current) {
+      clearTimeout(alertTimerRef.current);
+      alertTimerRef.current = null;
+    }
+  };
+
   return (
     <div className="p-4 max-w-lg mx-auto">
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-4">
-        <h1 className="text-xl font-bold mb-2">Detector de Audio Simple</h1>
-        <p className="text-gray-600 mb-4">
-          Envía muestras de audio cada 2 segundos
-        </p>
-
-        <div className="flex items-center mb-4">
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: `${Math.min(100, volume)}%` }}
-            ></div>
-          </div>
-          <span className="text-sm font-medium">{volume}</span>
-        </div>
-
-        <button
-          onClick={isActive ? stopCapture : startCapture}
-          className={`w-full py-2 px-4 rounded-lg font-medium ${
-            isActive
-              ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-blue-500 hover:bg-blue-600 text-white"
-          }`}
-        >
-          {isActive ? "Detener" : "Iniciar"}
-        </button>
-      </div>
-
-      {lastPrediction && (
-        <div
-          className={`mb-4 p-4 rounded-lg shadow-sm border ${
-            lastPrediction.is_critical
-              ? "bg-red-50 border-red-200 text-red-800"
-              : "bg-blue-50 border-blue-200 text-blue-800"
-          }`}
-        >
-          <div className="font-bold text-lg">
-            {lastPrediction.result}
-            <span className="ml-2 text-sm font-normal">
-              {Math.round(lastPrediction.score * 100)}%
-            </span>
-          </div>
-          <div className="text-sm opacity-75">
-            {new Date(lastPrediction.timestamp).toLocaleTimeString()}
-          </div>
-        </div>
+      {/* Alerta de advertencia */}
+      {showAlert && (
+        <WarningAlert
+          type={alertType}
+          direction={alertDirection}
+          onClose={handleCloseAlert}
+        />
       )}
 
-      <div className="bg-gray-100 rounded-lg p-4 max-h-40 overflow-y-auto text-sm">
-        <h2 className="font-medium mb-2">Log de actividad</h2>
-        <div className="space-y-1">
-          {log.map((entry, index) => (
-            <div key={index} className="text-xs">
-              {entry}
+      <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+        <h1 className="text-xl font-bold mb-2">Detector de Sonidos Críticos</h1>
+
+        <div className="mb-4">
+          <canvas
+            ref={canvasRef}
+            width={500}
+            height={150}
+            className="w-full bg-gray-900 rounded-lg"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Umbral: {UMBRAL} | Duración grabación: {DURACION_GRABACION / 1000}s
+          </p>
+        </div>
+
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setAutoMode(!autoMode)}
+            disabled={isRecording || isProcessing}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium ${
+              autoMode
+                ? "bg-green-500 hover:bg-green-600 text-white"
+                : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+            } ${
+              isRecording || isProcessing ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Modo Auto: {autoMode ? "ON" : "OFF"}
+          </button>
+
+          <button
+            onClick={forceActivateAudio}
+            className="flex-1 py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+          >
+            Activar Audio
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gray-100 p-3 rounded-lg">
+            <h2 className="font-medium mb-2 text-sm">Estado</h2>
+
+            <div className="flex items-center mb-2">
+              <div
+                className={`w-3 h-3 rounded-full mr-2 ${
+                  isRecording
+                    ? "bg-red-500 animate-pulse"
+                    : isProcessing
+                    ? "bg-yellow-500 animate-pulse"
+                    : autoMode
+                    ? "bg-green-500"
+                    : "bg-gray-400"
+                }`}
+              ></div>
+              <span className="text-sm">{detectionStatus}</span>
             </div>
-          ))}
+
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Volumen:</span>
+                <span
+                  className={volume > UMBRAL ? "text-red-500 font-medium" : ""}
+                >
+                  {volume}
+                </span>
+              </div>
+
+              <div className="w-full bg-gray-300 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full ${
+                    volume > UMBRAL ? "bg-red-500" : "bg-blue-500"
+                  }`}
+                  style={{ width: `${Math.min(100, (volume / 150) * 100)}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-100 p-3 rounded-lg">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="font-medium text-sm">Acciones</h2>
+            </div>
+
+            <button
+              onClick={startRecording}
+              disabled={isRecording || isProcessing}
+              className={`w-full py-2 mb-2 text-white rounded-lg text-sm font-medium ${
+                isRecording || isProcessing
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-purple-500 hover:bg-purple-600"
+              }`}
+            >
+              Grabar Manualmente
+            </button>
+
+            <button
+              onClick={stopRecording}
+              disabled={!isRecording}
+              className={`w-full py-2 text-white rounded-lg text-sm font-medium ${
+                !isRecording
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-red-500 hover:bg-red-600"
+              }`}
+            >
+              Detener Grabación
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default SimpleAudioDetector;
+}

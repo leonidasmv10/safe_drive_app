@@ -21,7 +21,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Navigation />
-      <NotificationLayout />
+      {/* <NotificationLayout /> */}
     </div>
   );
 }

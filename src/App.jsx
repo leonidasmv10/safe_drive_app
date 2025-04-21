@@ -14,8 +14,7 @@ import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
 import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
 import Layout from "./Layout";
 import AudioDetector from "./components/Test";
-import SimpleAudioDetector from "./components/TestAudio";
-import Test from "./components/TestV";
+import Test from "./components/TestAudio";
 
 function App() {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
@@ -65,8 +64,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/map" element={<Map location={location} />} />
           <Route path="/test" element={<AudioDetector />} />
-          <Route path="/test_audio" element={<SimpleAudioDetector />} />
-          <Route path="/test_v" element={<Test />} />
+          <Route path="/test_audio" element={<Test />} />
           <Route path="/car-view" element={<CarView location={location} />} />
           <Route path="/settings" element={<UserSettings />} />
           <Route path="/edit-profile" element={<EditProfile />} />
