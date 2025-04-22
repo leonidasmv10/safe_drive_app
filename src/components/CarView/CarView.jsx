@@ -325,7 +325,7 @@ export default function CarView() {
       );
 
       const data = await response.json();
-      
+      console.log("data", data);
       // Solo mostrar alerta si la detección no es null
       if (data && data.predicted_label && data.predicted_label !== "null") {
         showWarningAlert(data);
