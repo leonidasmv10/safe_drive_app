@@ -4,6 +4,7 @@ import { Icon } from "leaflet";
 import { useLocation } from "../../context/LocationContext";
 import { useDetection } from "../../context/DetectionContext";
 import { useAudio } from "@/context/AudioContext";
+import { useAuth } from "@/context/AuthContext";
 import WarningAlert from "@/components/shared/WarningAlert";
 import "leaflet/dist/leaflet.css";
 
@@ -128,24 +129,38 @@ function DetectionMarker({ detection, onRemove }) {
 }
 
 export default function Map() {
+  const { isAuthenticated } = useAuth();
   const { location, error, accuracy } = useLocation();
   const { detections, removeDetection } = useDetection();
   const { showAlert, alertType, soundDirection, setShowAlert } = useAudio();
   const [mapReady, setMapReady] = useState(false);
 
-  // Verificar cuando la ubicación está lista
+  // Solo inicializar la ubicación y el audio si el usuario está autenticado
   useEffect(() => {
-    if (location?.latitude && location?.longitude) {
+    if (isAuthenticated && location?.latitude && location?.longitude) {
       setMapReady(true);
+    } else {
+      setMapReady(false);
     }
-  }, [location]);
+  }, [isAuthenticated, location]);
 
   // Memoizar la posición para evitar re-renders innecesarios
   const position = useMemo(() => {
+    if (!isAuthenticated) return [0, 0];
     return location?.latitude && location?.longitude
       ? [location.latitude, location.longitude]
       : [0, 0];
-  }, [location?.latitude, location?.longitude]);
+  }, [isAuthenticated, location?.latitude, location?.longitude]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="text-center p-4">
+          <p className="text-gray-600">Por favor, inicia sesión para acceder al mapa</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
