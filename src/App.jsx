@@ -10,7 +10,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LocationProvider } from "./context/LocationContext";
 import { DetectionProvider } from "./context/DetectionContext";
 import { AudioProvider } from "./context/AudioContext";
-import { ROUTES, PUBLIC_ROUTES, PRIVATE_ROUTES } from "./config/routes";
+import { ROUTES} from "./config/routes";
 
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
@@ -37,6 +37,20 @@ const PrivateRoute = ({ children }) => {
   return children;
 };
 
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
+  if (user) {
+    return <Navigate to={ROUTES.MAP} />;
+  }
+
+  return children;
+};
+
 const ProtectedProviders = ({ children }) => {
   return (
     <LocationProvider>
@@ -55,7 +69,14 @@ function App() {
       <Router>
         <Routes>
           {/* Rutas públicas */}
-          <Route path={ROUTES.LOGIN} element={<Login />} />
+          <Route
+            path={ROUTES.LOGIN}
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
           <Route path={ROUTES.REGISTER} element={<Register />} />
           <Route
             path={ROUTES.RECOVER_PASSWORD}
