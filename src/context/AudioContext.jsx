@@ -174,7 +174,7 @@ export function AudioProvider({ children }) {
       });
 
       const data = await response.json();
-      console.log("DATA:", data);
+      
 
       if (data?.predicted_label === "Sirena" || data?.predicted_label === "Bocina") {
         setAlertType(data.predicted_label);
