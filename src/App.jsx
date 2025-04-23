@@ -37,71 +37,83 @@ const PrivateRoute = ({ children }) => {
   return children;
 };
 
+const ProtectedProviders = ({ children }) => {
+  return (
+    <LocationProvider>
+      <DetectionProvider>
+        <AudioProvider>
+          {children}
+        </AudioProvider>
+      </DetectionProvider>
+    </LocationProvider>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
-      <LocationProvider>
-        <DetectionProvider>
-          <AudioProvider>
-            <Router>
-              <Routes>
-                {/* Rutas públicas */}
-                <Route path={ROUTES.LOGIN} element={<Login />} />
-                <Route path={ROUTES.REGISTER} element={<Register />} />
-                <Route
-                  path={ROUTES.RECOVER_PASSWORD}
-                  element={<RecoverPassword />}
-                />
-                <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
+      <Router>
+        <Routes>
+          {/* Rutas públicas */}
+          <Route path={ROUTES.LOGIN} element={<Login />} />
+          <Route path={ROUTES.REGISTER} element={<Register />} />
+          <Route
+            path={ROUTES.RECOVER_PASSWORD}
+            element={<RecoverPassword />}
+          />
+          <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
 
-                {/* Rutas privadas */}
-                <Route element={<Layout />}>
-                  <Route
-                    path={ROUTES.MAP}
-                    element={
-                      <PrivateRoute>
-                        <Map />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path={ROUTES.CAR_VIEW}
-                    element={
-                      <PrivateRoute>
-                        <CarView />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path={ROUTES.SETTINGS}
-                    element={
-                      <PrivateRoute>
-                        <UserSettings />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path={ROUTES.EDIT_PROFILE}
-                    element={
-                      <PrivateRoute>
-                        <EditProfile />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path={ROUTES.CHANGE_PASSWORD}
-                    element={
-                      <PrivateRoute>
-                        <ChangePassword />
-                      </PrivateRoute>
-                    }
-                  />
-                </Route>
-              </Routes>
-            </Router>
-          </AudioProvider>
-        </DetectionProvider>
-      </LocationProvider>
+          {/* Rutas privadas */}
+          <Route element={<Layout />}>
+            <Route
+              path={ROUTES.MAP}
+              element={
+                <PrivateRoute>
+                  <ProtectedProviders>
+                    <Map />
+                  </ProtectedProviders>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path={ROUTES.CAR_VIEW}
+              element={
+                <PrivateRoute>
+                  <ProtectedProviders>
+                    <CarView />
+                  </ProtectedProviders>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path={ROUTES.SETTINGS}
+              element={
+                <PrivateRoute>
+                  <ProtectedProviders>
+                    <UserSettings />
+                  </ProtectedProviders>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path={ROUTES.EDIT_PROFILE}
+              element={
+                <PrivateRoute>
+                  <EditProfile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path={ROUTES.CHANGE_PASSWORD}
+              element={
+                <PrivateRoute>
+                  <ChangePassword />
+                </PrivateRoute>
+              }
+            />
+          </Route>
+        </Routes>
+      </Router>
     </AuthProvider>
   );
 }
