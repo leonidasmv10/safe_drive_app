@@ -1,26 +1,8 @@
-import { useState, useEffect, useRef } from "react";
-import { Volume2, AlertTriangle, Ear, Settings, X } from "lucide-react";
-import { useLocation } from "@/context/LocationContext";
-import { useDetection } from "@/context/DetectionContext";
+import { useState } from "react";
+import { Volume2, Settings, X } from "lucide-react";
+import { useAudio } from "@/context/AudioContext";
 import WarningAlert from "@/components/shared/WarningAlert";
 
-// Tipos de sonidos críticos que podemos detectar
-const CRITICAL_SOUNDS = {
-  Bocina: {
-    name: "Bocina de Vehículo",
-    description: "Advertencia de vehículo cercano",
-    action: "Verifique su entorno y ajuste su conducción",
-    decibels: "100-110 dB",
-    icon: "🚗",
-  },
-  Sirena: {
-    name: "Sirena de Emergencia",
-    description: "Vehículo de emergencia acercándose",
-    action: "Reduzca la velocidad y muévase hacia un lado si es posible",
-    decibels: "110-120 dB",
-    icon: "🚨",
-  }
-};
 
 // Componente del coche con indicadores de dirección
 const CarDirectionIndicator = ({ direction }) => {
@@ -88,317 +70,19 @@ const CarDirectionIndicator = ({ direction }) => {
 };
 
 export default function CarView() {
-  // Estados
-  const [isRecording, setIsRecording] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [autoMode, setAutoMode] = useState(true);
-  const [volume, setVolume] = useState(0);
-  const [soundDirection, setSoundDirection] = useState("LEFT");
   const [showSettings, setShowSettings] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertType, setAlertType] = useState("Sirena");
-  const [detectionStatus, setDetectionStatus] = useState("Monitoreando sonidos");
-
-  // Referencias
-  const audioContextRef = useRef(null);
-  const analyserRef = useRef(null);
-  const dataArrayRef = useRef(null);
-  const sourceRef = useRef(null);
-  const streamRef = useRef(null);
-  const animationIdRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioDataRef = useRef([]);
-  const checkVolumeIntervalRef = useRef(null);
-  const alertTimerRef = useRef(null);
-
-  // Contexto
-  const { location } = useLocation();
-  const { addDetection } = useDetection();
-
-  // Constantes
-  const UMBRAL = 40;
-  const DURACION_GRABACION = 2000;
-  const DURACION_ALERTA = 5000;
-  const API_URL = import.meta.env.VITE_API_URL;
-
-  // Cambiar la dirección periódicamente para demostrar funcionalidad
-  useEffect(() => {
-    const directions = ["LEFT", "RIGHT", "FRONT", "REAR"];
-    let index = 0;
-
-    const interval = setInterval(() => {
-      index = (index + 1) % directions.length;
-      setSoundDirection(directions[index]);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (location?.latitude && location?.longitude) {
-      //console.log("Ubicación recibida en CarView:", location);
-    }
-  });
-
-  // Inicializar audio
-  useEffect(() => {
-    const initAudio = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false,
-          },
-        });
-        streamRef.current = stream;
-
-        audioContextRef.current = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 256;
-
-        const bufferLength = analyserRef.current.frequencyBinCount;
-        dataArrayRef.current = new Uint8Array(bufferLength);
-
-        sourceRef.current =
-          audioContextRef.current.createMediaStreamSource(stream);
-        sourceRef.current.connect(analyserRef.current);
-
-        // Comenzar a analizar el audio
-        updateSoundIntensity();
-      } catch (err) {
-        console.error("Error al inicializar el audio:", err);
-      }
-    };
-
-    initAudio();
-
-    return () => {
-      stopAllProcesses();
-      if (audioContextRef.current) audioContextRef.current.close();
-      if (streamRef.current) {
-        const tracks = streamRef.current.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
-  }, []);
-
-  // Iniciar detección automática
-  const startAutoDetection = () => {
-    setDetectionStatus("Monitoreando sonidos");
-    if (checkVolumeIntervalRef.current) {
-      clearInterval(checkVolumeIntervalRef.current);
-    }
-    checkVolumeIntervalRef.current = setInterval(() => {
-      if (isRecording || isProcessing) return;
-      checkVolumeAndRecord();
-    }, 50);
-  };
-
-  // Detener detección automática
-  const stopAutoDetection = () => {
-    setDetectionStatus("Esperando");
-    if (checkVolumeIntervalRef.current) {
-      clearInterval(checkVolumeIntervalRef.current);
-      checkVolumeIntervalRef.current = null;
-    }
-  };
-
-  // Comprobar volumen y grabar si es necesario
-  const checkVolumeAndRecord = () => {
-    if (!analyserRef.current) return;
-
-    const bufferLength = analyserRef.current.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    analyserRef.current.getByteFrequencyData(dataArray);
-
-    const avgVolume =
-      Array.from(dataArray).reduce((sum, val) => sum + val, 0) /
-      dataArray.length;
-    setVolume(avgVolume);
-
-    // Solo grabar si supera el umbral y no está ya grabando o procesando
-    if (avgVolume > UMBRAL && !isRecording && !isProcessing) {
-      startRecording();
-    }
-  };
-
-  // Actualizar la intensidad del sonido
-  const updateSoundIntensity = () => {
-    if (!analyserRef.current || !dataArrayRef.current) {
-      animationIdRef.current = requestAnimationFrame(updateSoundIntensity);
-      return;
-    }
-
-    analyserRef.current.getByteFrequencyData(dataArrayRef.current);
-    const avgVolume =
-      dataArrayRef.current.reduce((sum, val) => sum + val, 0) /
-      dataArrayRef.current.length;
-    setVolume(avgVolume);
-
-    animationIdRef.current = requestAnimationFrame(updateSoundIntensity);
-  };
-
-  // Iniciar grabación
-  const startRecording = async () => {
-    if (isRecording || isProcessing || !streamRef.current) return;
-
-    try {
-      if (checkVolumeIntervalRef.current) {
-        clearInterval(checkVolumeIntervalRef.current);
-        checkVolumeIntervalRef.current = null;
-      }
-
-      const mediaRecorder = new MediaRecorder(streamRef.current);
-      mediaRecorderRef.current = mediaRecorder;
-      audioDataRef.current = [];
-
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          audioDataRef.current.push(e.data);
-        }
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-      setDetectionStatus("Grabando audio");
-
-      // Grabar durante 4 segundos
-      setTimeout(() => {
-        if (mediaRecorder.state === "recording") {
-          mediaRecorder.stop();
-        }
-        setTimeout(() => {
-          processAudioData();
-        }, 300);
-      }, DURACION_GRABACION);
-    } catch (error) {
-      console.error("Error al iniciar grabación:", error);
-      setIsRecording(false);
-      if (autoMode) {
-        startAutoDetection();
-      }
-    }
-  };
-
-  // Procesar los datos de audio grabados
-  const processAudioData = async () => {
-    setIsRecording(false);
-    setIsProcessing(true);
-    setDetectionStatus("Procesando audio");
-
-    try {
-      if (audioDataRef.current.length === 0) {
-        setIsProcessing(false);
-        if (autoMode) {
-          startAutoDetection();
-        }
-        return;
-      }
-
-      // Verificar que tenemos la ubicación antes de continuar
-      if (!location?.latitude || !location?.longitude) {
-        console.warn("No se pudo obtener la ubicación, reintentando...");
-        setIsProcessing(false);
-        if (autoMode) {
-          startAutoDetection();
-        }
-        return;
-      }
-
-      const audioBlob = new Blob(audioDataRef.current, { type: "audio/webm" });
-      const formData = new FormData();
-      formData.append("audio", audioBlob, "evento.wav");
-      formData.append("latitude", location.latitude.toString());
-      formData.append("longitude", location.longitude.toString());
-
-      const response = await fetch(
-        `${API_URL}/models_ai/detection-critical-sound/`,
-        {
-          method: "POST",
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      console.log("data", data);
-      // Solo mostrar alerta si la detección no es null
-      if (data && data.predicted_label && data.predicted_label !== "null") {
-        showWarningAlert(data);
-      }
-    } catch (error) {
-      console.error("Error al procesar audio:", error);
-    } finally {
-      audioDataRef.current = [];
-      setIsProcessing(false);
-      setDetectionStatus("Monitoreando sonidos");
-      if (autoMode) {
-        startAutoDetection();
-      }
-    }
-  };
-
-  // Mostrar alerta de advertencia
-  const showWarningAlert = (data) => {
-    if (!data || data.predicted_label === "null") return;
-
-    // Usar directamente el valor del servidor
-    const alertType = data.predicted_label;
-    let direction = "LEFT";
-
-    // Mejorar la lógica de detección de dirección
-    const label = data.predicted_label.toLowerCase();
-    if (label.includes("right")) {
-      direction = "RIGHT";
-    } else if (label.includes("left")) {
-      direction = "LEFT";
-    } else if (label.includes("front")) {
-      direction = "FRONT";
-    } else if (label.includes("rear") || label.includes("back")) {
-      direction = "REAR";
-    }
-
-    setAlertType(alertType);
-    setSoundDirection(direction);
-    setShowAlert(true);
-
-    if (alertTimerRef.current) {
-      clearTimeout(alertTimerRef.current);
-    }
-
-    alertTimerRef.current = setTimeout(() => {
-      setShowAlert(false);
-    }, DURACION_ALERTA);
-  };
-
-  // Detener todos los procesos activos
-  const stopAllProcesses = () => {
-    if (animationIdRef.current) {
-      cancelAnimationFrame(animationIdRef.current);
-      animationIdRef.current = null;
-    }
-    if (checkVolumeIntervalRef.current) {
-      clearInterval(checkVolumeIntervalRef.current);
-      checkVolumeIntervalRef.current = null;
-    }
-    if (alertTimerRef.current) {
-      clearTimeout(alertTimerRef.current);
-      alertTimerRef.current = null;
-    }
-  };
-
-  // Manejar cambios en autoMode
-  useEffect(() => {
-    if (autoMode) {
-      startAutoDetection();
-    } else {
-      stopAutoDetection();
-    }
-  }, [autoMode]);
+  const {
+    isRecording,
+    isProcessing,
+    autoMode,
+    setAutoMode,
+    volume,
+    soundDirection,
+    showAlert,
+    setShowAlert,
+    alertType,
+    detectionStatus
+  } = useAudio();
 
   return (
     <div className="flex flex-col h-screen relative overflow-hidden bg-gray-100">
@@ -456,7 +140,7 @@ export default function CarView() {
           <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                volume > UMBRAL ? "bg-red-500" : "bg-blue-500"
+                volume > 40 ? "bg-red-500" : "bg-blue-500"
               }`}
               style={{ width: `${Math.min(100, (volume / 150) * 100)}%` }}
             ></div>

@@ -18,7 +18,9 @@ export function AudioProvider({ children }) {
   const [soundDirection, setSoundDirection] = useState("LEFT");
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState("Sirena");
-  const [detectionStatus, setDetectionStatus] = useState("Monitoreando sonidos");
+  const [detectionStatus, setDetectionStatus] = useState(
+    "Monitoreando sonidos"
+  );
   const [isDetecting, setIsDetecting] = useState(true);
 
   // Referencias
@@ -58,7 +60,8 @@ export function AudioProvider({ children }) {
         const bufferLength = analyserRef.current.frequencyBinCount;
         dataArrayRef.current = new Uint8Array(bufferLength);
 
-        sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+        sourceRef.current =
+          audioContextRef.current.createMediaStreamSource(stream);
         sourceRef.current.connect(analyserRef.current);
 
         updateSoundIntensity();
@@ -104,7 +107,8 @@ export function AudioProvider({ children }) {
     analyserRef.current.getByteFrequencyData(dataArray);
 
     const avgVolume =
-      Array.from(dataArray).reduce((sum, val) => sum + val, 0) / dataArray.length;
+      Array.from(dataArray).reduce((sum, val) => sum + val, 0) /
+      dataArray.length;
     setVolume(avgVolume);
 
     if (avgVolume > UMBRAL && !isRecording && !isProcessing) {
@@ -114,7 +118,8 @@ export function AudioProvider({ children }) {
 
   // Iniciar grabación
   const startRecording = async () => {
-    if (isRecording || isProcessing || !streamRef.current || !isDetecting) return;
+    if (isRecording || isProcessing || !streamRef.current || !isDetecting)
+      return;
 
     try {
       setIsDetecting(false); // Detener nuevas detecciones
@@ -150,7 +155,7 @@ export function AudioProvider({ children }) {
   // Procesar audio
   const processAudioData = async () => {
     if (!isDetecting) return; // Si ya estamos procesando, no hacer nada
-    
+
     setIsRecording(false);
     setIsProcessing(true);
     setDetectionStatus("Procesando audio");
@@ -163,11 +168,12 @@ export function AudioProvider({ children }) {
         return;
       }
 
-      const hasValidLocation = location?.latitude !== null && 
-                             location?.latitude !== undefined && 
-                             location?.longitude !== null && 
-                             location?.longitude !== undefined &&
-                             !(location.latitude === 0 && location.longitude === 0);
+      const hasValidLocation =
+        location?.latitude !== null &&
+        location?.latitude !== undefined &&
+        location?.longitude !== null &&
+        location?.longitude !== undefined &&
+        !(location.latitude === 0 && location.longitude === 0);
 
       if (!hasValidLocation) {
         console.log("Sin ubicación disponible, esperando GPS...");
@@ -194,10 +200,15 @@ export function AudioProvider({ children }) {
       );
 
       const data = await response.json();
-      
-      if (data?.predicted_label === "Sirena" || data?.predicted_label === "Bocina") {
-        console.log(`Detección confirmada: ${data.predicted_label} - Bloqueando nuevas detecciones por ${DURACION_ALERTA}ms`);
-        
+
+      if (
+        data?.predicted_label === "Sirena" ||
+        data?.predicted_label === "Bocina"
+      ) {
+        console.log(
+          `Detección confirmada: ${data.predicted_label} - Bloqueando nuevas detecciones por ${DURACION_ALERTA}ms`
+        );
+
         // Limpiar cualquier timer pendiente
         if (alertTimerRef.current) {
           clearTimeout(alertTimerRef.current);
@@ -212,8 +223,8 @@ export function AudioProvider({ children }) {
         // Agregar al mapa solo una vez
         addDetection({
           position: [location.latitude, location.longitude],
-          type: "critical",
-          description: data.predicted_label
+          type: data.predicted_label == "Sirena" ? "critical" : "warning",
+          description: data.predicted_label,
         });
 
         // Mantener la detección bloqueada durante DURACION_ALERTA
@@ -245,12 +256,12 @@ export function AudioProvider({ children }) {
   // Iniciar detección automática
   const startAutoDetection = () => {
     if (!autoMode || !isDetecting) return;
-    
+
     if (checkVolumeIntervalRef.current) {
       clearInterval(checkVolumeIntervalRef.current);
       checkVolumeIntervalRef.current = null;
     }
-    
+
     checkVolumeIntervalRef.current = setInterval(checkVolumeAndRecord, 500); // Aumentado a 500ms
   };
 
@@ -307,13 +318,11 @@ export function AudioProvider({ children }) {
     showAlert,
     setShowAlert,
     alertType,
-    detectionStatus
+    detectionStatus,
   };
 
   return (
-    <AudioContext.Provider value={value}>
-      {children}
-    </AudioContext.Provider>
+    <AudioContext.Provider value={value}>{children}</AudioContext.Provider>
   );
 }
 
@@ -323,4 +332,4 @@ export function useAudio() {
     throw new Error("useAudio debe usarse dentro de un AudioProvider");
   }
   return context;
-} 
+}

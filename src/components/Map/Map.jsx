@@ -19,21 +19,21 @@ const markerIcon = new Icon({
 // Memoizar los iconos de detección
 const getMarkerIcon = (type) => {
   const iconUrl = type === 'critical' 
-    ? 'https://cdn-icons-png.flaticon.com/512/103/103228.png'
+    ? '/siren_icon.png' // Icono de sirena local
     : type === 'warning'
-    ? 'https://cdn-icons-png.flaticon.com/512/103/103228.png'
-    : 'https://cdn-icons-png.flaticon.com/512/103/103228.png';
+    ? '/bocina_icon.png' // Icono de bocina local
+    : '/siren_icon.png';
 
   return new Icon({
     iconUrl,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [40, 40], // Aumentado el tamaño para mejor visibilidad
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20]
   });
 };
 
 const criticalIcon = getMarkerIcon('critical');
 const warningIcon = getMarkerIcon('warning');
-const defaultIcon = getMarkerIcon('default');
 
 function RecenterMap({ position, accuracy }) {
   const map = useMap();
@@ -97,29 +97,18 @@ function SignalQualityIndicator({ accuracy }) {
 }
 
 function DetectionMarker({ detection, onRemove }) {
-  const [timeLeft, setTimeLeft] = useState(300);
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setIsExpired(true);
-          onRemove(detection.id);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const timer = setTimeout(() => {
+      setIsExpired(true);
+      onRemove(detection.id);
+    }, 60000); // 1 minuto en milisegundos
 
-    return () => clearInterval(timer);
+    return () => clearTimeout(timer);
   }, [detection.id, onRemove]);
 
   if (isExpired) return null;
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
 
   return (
     <Marker
@@ -127,25 +116,11 @@ function DetectionMarker({ detection, onRemove }) {
       icon={detection.type === 'critical' ? criticalIcon : warningIcon}
     >
       <Popup>
-        <div>
-          <p className="font-semibold">
-            {detection.type === 'critical' ? '⚠️ Sonido Crítico' : '⚠️ Advertencia'}
+        <div className="p-2">
+          <p className="font-semibold text-red-600">
+            {detection.type === 'critical' ? '🚑 Vehículo de Emergencia' : '🚗 Vehículo con Bocina'}
           </p>
           <p className="text-sm text-gray-600">{detection.description}</p>
-          <div className="mt-2">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className={`h-2.5 rounded-full ${
-                  timeLeft > 150 ? 'bg-green-500' : 
-                  timeLeft > 60 ? 'bg-yellow-500' : 'bg-red-500'
-                }`}
-                style={{ width: `${(timeLeft / 300) * 100}%` }}
-              ></div>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Desaparece en: {minutes}:{seconds.toString().padStart(2, '0')}
-            </p>
-          </div>
         </div>
       </Popup>
     </Marker>
@@ -153,7 +128,7 @@ function DetectionMarker({ detection, onRemove }) {
 }
 
 export default function Map() {
-  const { location, loading, error, accuracy } = useLocation();
+  const { location, error, accuracy } = useLocation();
   const { detections, removeDetection } = useDetection();
   const { showAlert, alertType, soundDirection, setShowAlert } = useAudio();
   const [mapReady, setMapReady] = useState(false);
