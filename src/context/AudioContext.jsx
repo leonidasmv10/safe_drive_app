@@ -18,10 +18,10 @@ export function AudioProvider({ children }) {
   const [soundDirection, setSoundDirection] = useState("LEFT");
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState("Sirena");
-  const [detectionStatus, setDetectionStatus] = useState(
-    "Monitoreando sonidos"
-  );
+  const [detectionStatus, setDetectionStatus] = useState("Monitoreando sonidos");
   const [isDetecting, setIsDetecting] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
 
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
@@ -36,46 +36,77 @@ export function AudioProvider({ children }) {
   const { location } = useLocation();
   const { addDetection } = useDetection();
 
-  useEffect(() => {
-    const initAudio = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false,
-          },
-        });
-
-        streamRef.current = stream;
-
-        audioContextRef.current = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 256;
-
-        const bufferLength = analyserRef.current.frequencyBinCount;
-        dataArrayRef.current = new Uint8Array(bufferLength);
-
-        sourceRef.current =
-          audioContextRef.current.createMediaStreamSource(stream);
-        sourceRef.current.connect(analyserRef.current);
-
-        updateSoundIntensity();
-      } catch (err) {
-        console.error("Error al inicializar el audio:", err);
+  const initializeAudio = async () => {
+    try {
+      // Verificar si ya tenemos permisos
+      const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
+      if (permissionStatus.state === 'denied') {
+        setDetectionStatus("Permiso de micrófono denegado");
+        return;
       }
-    };
 
-    initAudio();
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
+
+      streamRef.current = stream;
+      setPermissionGranted(true);
+
+      // Crear AudioContext después de obtener el stream
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // En iOS, necesitamos iniciar el contexto de audio
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
+      }
+
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+
+      const bufferLength = analyserRef.current.frequencyBinCount;
+      dataArrayRef.current = new Uint8Array(bufferLength);
+
+      sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+      sourceRef.current.connect(analyserRef.current);
+
+      updateSoundIntensity();
+      setIsInitialized(true);
+      setDetectionStatus("Monitoreando sonidos");
+    } catch (err) {
+      console.error("Error al inicializar el audio:", err);
+      setDetectionStatus("Error al acceder al micrófono");
+    }
+  };
+
+  // Inicializar audio después de la primera interacción del usuario
+  const handleUserInteraction = async () => {
+    if (!isInitialized) {
+      await initializeAudio();
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    }
+  };
+
+  useEffect(() => {
+    // Añadir listeners para la primera interacción del usuario
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
 
     return () => {
       stopAllProcesses();
-      if (audioContextRef.current) audioContextRef.current.close();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
       if (streamRef.current) {
         const tracks = streamRef.current.getTracks();
         tracks.forEach((track) => track.stop());
       }
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
     };
   }, []);
 
