@@ -18,7 +18,7 @@ export function AudioProvider({ children }) {
   const [soundDirection, setSoundDirection] = useState("LEFT");
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState("Sirena");
-  const [detectionStatus, setDetectionStatus] = useState("Monitoreando sonidos");
+  const [detectionStatus, setDetectionStatus] = useState("Solicitando acceso al micrófono");
   const [isDetecting, setIsDetecting] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
@@ -38,13 +38,7 @@ export function AudioProvider({ children }) {
 
   const initializeAudio = async () => {
     try {
-      // Verificar si ya tenemos permisos
-      const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
-      if (permissionStatus.state === 'denied') {
-        setDetectionStatus("Permiso de micrófono denegado");
-        return;
-      }
-
+      // Solicitar permisos del micrófono
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
@@ -54,7 +48,6 @@ export function AudioProvider({ children }) {
       });
 
       streamRef.current = stream;
-      setPermissionGranted(true);
 
       // Crear AudioContext después de obtener el stream
       audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -76,25 +69,16 @@ export function AudioProvider({ children }) {
       updateSoundIntensity();
       setIsInitialized(true);
       setDetectionStatus("Monitoreando sonidos");
+      startAutoDetection();
     } catch (err) {
       console.error("Error al inicializar el audio:", err);
-      setDetectionStatus("Error al acceder al micrófono");
-    }
-  };
-
-  // Inicializar audio después de la primera interacción del usuario
-  const handleUserInteraction = async () => {
-    if (!isInitialized) {
-      await initializeAudio();
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
+      setDetectionStatus("Error: Permiso de micrófono denegado. Por favor, permita el acceso al micrófono en la configuración de su dispositivo.");
     }
   };
 
   useEffect(() => {
-    // Añadir listeners para la primera interacción del usuario
-    document.addEventListener('click', handleUserInteraction);
-    document.addEventListener('touchstart', handleUserInteraction);
+    // Iniciar automáticamente al montar el componente
+    initializeAudio();
 
     return () => {
       stopAllProcesses();
@@ -105,8 +89,6 @@ export function AudioProvider({ children }) {
         const tracks = streamRef.current.getTracks();
         tracks.forEach((track) => track.stop());
       }
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
     };
   }, []);
 
