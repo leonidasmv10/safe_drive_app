@@ -4,5 +4,17 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [ react(),
+  VitePWA({
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'SafeDrive',
+      short_name: 'SafeDrive',
+      start_url: '/',
+      display: 'standalone',
+      background_color: '#ffffff',
+      theme_color: '#9f59f5',
+    }
+  })
+],
 };
