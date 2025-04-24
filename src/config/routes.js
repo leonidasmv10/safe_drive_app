@@ -9,6 +9,7 @@ export const ROUTES = {
   SETTINGS: "/settings",
   EDIT_PROFILE: "/edit-profile",
   CHANGE_PASSWORD: "/change-password",
+  LANDING: "/landing",
 };
 
 export const PUBLIC_ROUTES = [
