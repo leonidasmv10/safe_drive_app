@@ -5,7 +5,7 @@ import RecordRTC from "recordrtc";
 
 const AudioContext = createContext();
 
-const UMBRAL = 80;
+const UMBRAL = 60;
 const DURACION_GRABACION = 2000;
 const DURACION_ALERTA = 5000;
 const API_URL = import.meta.env.VITE_API_URL;
