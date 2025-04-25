@@ -10,7 +10,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LocationProvider } from "./context/LocationContext";
 import { DetectionProvider } from "./context/DetectionContext";
 import { AudioProvider } from "./context/AudioContext";
-import { ROUTES} from "./config/routes";
+import { ROUTES } from "./config/routes";
 
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
@@ -22,6 +22,8 @@ import UserSettings from "@/components/UserSettings/userSettings";
 import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
 import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
 import Layout from "./Layout";
+import Landing from "./components/Landing";
+import VisualDetection from "@/components/Video";
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -55,9 +57,7 @@ const ProtectedProviders = ({ children }) => {
   return (
     <LocationProvider>
       <DetectionProvider>
-        <AudioProvider>
-          {children}
-        </AudioProvider>
+        <AudioProvider>{children}</AudioProvider>
       </DetectionProvider>
     </LocationProvider>
   );
@@ -77,11 +77,16 @@ function App() {
               </PublicRoute>
             }
           />
-          <Route path={ROUTES.REGISTER} element={<Register />} />
           <Route
-            path={ROUTES.RECOVER_PASSWORD}
-            element={<RecoverPassword />}
+            path={ROUTES.LANDING}
+            element={
+              <PublicRoute>
+                <Landing />
+              </PublicRoute>
+            }
           />
+          <Route path={ROUTES.REGISTER} element={<Register />} />
+          <Route path={ROUTES.RECOVER_PASSWORD} element={<RecoverPassword />} />
           <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
 
           {/* Rutas privadas */}
@@ -92,6 +97,16 @@ function App() {
                 <PrivateRoute>
                   <ProtectedProviders>
                     <Map />
+                  </ProtectedProviders>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path={ROUTES.VIDEO}
+              element={
+                <PrivateRoute>
+                  <ProtectedProviders>
+                    <VisualDetection />
                   </ProtectedProviders>
                 </PrivateRoute>
               }

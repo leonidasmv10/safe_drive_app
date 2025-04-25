@@ -5,7 +5,7 @@ import RecordRTC from "recordrtc";
 
 const AudioContext = createContext();
 
-const UMBRAL = 80;
+const UMBRAL = 60;
 const DURACION_GRABACION = 2000;
 const DURACION_ALERTA = 5000;
 const API_URL = import.meta.env.VITE_API_URL;
@@ -18,10 +18,10 @@ export function AudioProvider({ children }) {
   const [soundDirection, setSoundDirection] = useState("LEFT");
   const [showAlert, setShowAlert] = useState(false);
   const [alertType, setAlertType] = useState("Sirena");
-  const [detectionStatus, setDetectionStatus] = useState(
-    "Monitoreando sonidos"
-  );
+  const [detectionStatus, setDetectionStatus] = useState("Solicitando acceso al micrófono");
   const [isDetecting, setIsDetecting] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
 
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
@@ -36,42 +36,55 @@ export function AudioProvider({ children }) {
   const { location } = useLocation();
   const { addDetection } = useDetection();
 
-  useEffect(() => {
-    const initAudio = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false,
-          },
-        });
+  const initializeAudio = async () => {
+    try {
+      // Solicitar permisos del micrófono
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+      });
 
-        streamRef.current = stream;
+      streamRef.current = stream;
 
-        audioContextRef.current = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 256;
-
-        const bufferLength = analyserRef.current.frequencyBinCount;
-        dataArrayRef.current = new Uint8Array(bufferLength);
-
-        sourceRef.current =
-          audioContextRef.current.createMediaStreamSource(stream);
-        sourceRef.current.connect(analyserRef.current);
-
-        updateSoundIntensity();
-      } catch (err) {
-        console.error("Error al inicializar el audio:", err);
+      // Crear AudioContext después de obtener el stream
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // En iOS, necesitamos iniciar el contexto de audio
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume();
       }
-    };
 
-    initAudio();
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      analyserRef.current.fftSize = 256;
+
+      const bufferLength = analyserRef.current.frequencyBinCount;
+      dataArrayRef.current = new Uint8Array(bufferLength);
+
+      sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+      sourceRef.current.connect(analyserRef.current);
+
+      updateSoundIntensity();
+      setIsInitialized(true);
+      setDetectionStatus("Monitoreando sonidos");
+      startAutoDetection();
+    } catch (err) {
+      console.error("Error al inicializar el audio:", err);
+      setDetectionStatus("Error: Permiso de micrófono denegado. Por favor, permita el acceso al micrófono en la configuración de su dispositivo.");
+    }
+  };
+
+  useEffect(() => {
+    // Iniciar automáticamente al montar el componente
+    initializeAudio();
 
     return () => {
       stopAllProcesses();
-      if (audioContextRef.current) audioContextRef.current.close();
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
       if (streamRef.current) {
         const tracks = streamRef.current.getTracks();
         tracks.forEach((track) => track.stop());
