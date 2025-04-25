@@ -10,7 +10,7 @@ export default function DailySummary() {
     date: "24 de abril de 2025",
     criticalSounds: {
       sirens: [
-        { time: "17:10", location: "zona urbana" },
+        { time: "17:15", location: "zona urbana" },
         { time: "19:35", location: "zona urbana" },
       ],
       horns: 3,
