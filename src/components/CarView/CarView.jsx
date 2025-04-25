@@ -178,7 +178,7 @@ export default function CarView() {
       {/* Panel principal */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 relative">
         {/* Alertas */}
-        <div className="absolute top-4 left-0 right-0">
+        <div className="absolute top-4 left-0 right-0 z-50">
           {showAudioAlert && (
             <WarningAlert
               type={audioAlertType.toUpperCase()}
@@ -203,9 +203,9 @@ export default function CarView() {
 
         {/* Cámara flotante */}
         {isDetecting && (
-          <div className="fixed top-24 right-4 z-50">
-            <div className="relative">
-              <div className="w-48 h-36 rounded-lg overflow-hidden shadow-lg">
+          <div className="fixed top-20 right-4 z-40">
+            <div className="relative group">
+              <div className="w-32 h-24 rounded-lg overflow-hidden shadow-lg bg-black">
                 <Webcam
                   ref={webcamRef}
                   screenshotFormat="image/jpeg"
@@ -226,13 +226,14 @@ export default function CarView() {
                       : ""
                   }`}
                 ></div>
-              </div>
 
-              {/* Controles */}
-              <div className="absolute -bottom-10 left-0 right-0 flex justify-center space-x-2">
+                {/* Botón superpuesto que aparece al hacer hover */}
                 <button
                   onClick={handleVisionToggle}
-                  className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                           p-2 bg-red-500/80 text-white rounded-full hover:bg-red-600 
+                           transition-all duration-200 opacity-0 group-hover:opacity-100
+                           shadow-lg backdrop-blur-sm"
                   title="Desactivar Visión"
                 >
                   <Power className="h-4 w-4" />
