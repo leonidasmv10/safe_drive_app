@@ -190,7 +190,7 @@ export default function UserSettings() {
       {showAlert && (
         <div className="mb-4">
           <WarningAlert
-            type={alertType === "Sirena" ? "ambulance" : "police"}
+            type={alertType.toUpperCase()}
             direction={soundDirection}
             onClose={() => setShowAlert(false)}
           />

@@ -16,35 +16,27 @@ const WarningAlert = ({ direction = "LEFT", type = "Sirena", onClose }) => {
 
   // Iconos según el tipo de alerta
   const alertIcons = {
-    police: <Car className="text-red-600" size={20} />,
-    ambulance: <AlertTriangle className="text-red-600" size={20} />,
-  };
-
-  // Textos según el tipo de alerta
-  const alertTexts = {
-    police: "BOCINA",
-    ambulance: "SIRENA",
+    sirena: <Car className="text-red-600" size={20} />,
+    bocina: <AlertTriangle className="text-red-600" size={20} />,
   };
 
   if (!isVisible) return null;
 
   return (
     <div className="bg-red-50 rounded-xl p-3 mb-4 flex items-center shadow-md animate-fadeIn relative">
-      {/* Icono con fondo */}
       <div
         className={`bg-red-100 p-2 rounded-lg mr-3 ${
           isPulsing ? "animate-pulse" : ""
         }`}
       >
-        {alertIcons[type] || alertIcons.police}
+        {alertIcons[type] || alertIcons.sirena}
       </div>
 
       {/* Textos de alerta */}
       <div className="flex-1">
         <p className="text-red-600 font-bold text-sm">WARNING!</p>
         <p className="text-gray-800 text-sm font-medium">
-          {alertTexts[type] || alertTexts.police} in your{" "}
-          <span className="font-bold">{direction}</span>
+          <span className="font-bold">{type}</span>
         </p>
       </div>
 

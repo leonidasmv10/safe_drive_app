@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Volume2, Settings, X } from "lucide-react";
+import { Volume2, Settings, X, Camera, Power } from "lucide-react";
 import { useAudio } from "@/context/AudioContext";
+import { useVision } from "@/context/VisionContext";
+import Webcam from "react-webcam";
 import WarningAlert from "@/components/shared/WarningAlert";
-
 
 // Componente del coche con indicadores de dirección
 const CarDirectionIndicator = ({ direction }) => {
@@ -78,11 +79,54 @@ export default function CarView() {
     setAutoMode,
     volume,
     soundDirection,
-    showAlert,
-    setShowAlert,
-    alertType,
-    detectionStatus
+    showAlert: showAudioAlert,
+    setShowAlert: setShowAudioAlert,
+    alertType: audioAlertType,
+    detectionStatus: audioDetectionStatus,
   } = useAudio();
+
+  const {
+    isDetecting,
+    detectionStatus,
+    showCamera,
+    showAlert: showVisionAlert,
+    alertType: visionAlertType,
+    webcamRef,
+    toggleCamera,
+    toggleDetection,
+  } = useVision();
+
+  // Estilos para los estados de detección de visión
+  const getVisionStatusColor = () => {
+    switch (detectionStatus.status) {
+      case "alert":
+        return "bg-red-600";
+      case "safe":
+        return "bg-green-500";
+      case "processing":
+        return "bg-yellow-400";
+      case "error":
+        return "bg-orange-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  // Modificar toggleCamera para que detenga la cámara completamente
+  const handleToggleCamera = () => {
+    if (showCamera) {
+      // Si estamos ocultando la cámara, detenemos la detección y la cámara
+      toggleDetection();
+      if (webcamRef.current) {
+        const stream = webcamRef.current.video.srcObject;
+        if (stream) {
+          const tracks = stream.getTracks();
+          tracks.forEach(track => track.stop());
+        }
+      }
+    }
+    toggleCamera();
+  };
 
   return (
     <div className="flex flex-col h-screen relative overflow-hidden bg-gray-100">
@@ -91,21 +135,40 @@ export default function CarView() {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${
-                isRecording
-                  ? "bg-red-500 animate-pulse"
-                  : isProcessing
-                  ? "bg-yellow-500 animate-pulse"
-                  : autoMode
-                  ? "bg-green-500"
-                  : "bg-gray-400"
-              }`}></div>
-              <span className="text-sm font-medium text-gray-600">{detectionStatus}</span>
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isRecording
+                    ? "bg-red-500 animate-pulse"
+                    : isProcessing
+                    ? "bg-yellow-500 animate-pulse"
+                    : autoMode
+                    ? "bg-green-500"
+                    : "bg-gray-400"
+                }`}
+              ></div>
+              <span className="text-sm font-medium text-gray-600">
+                {audioDetectionStatus}
+              </span>
+            </div>
+            <div className="h-4 w-px bg-gray-200"></div>
+            <div className="flex items-center space-x-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isDetecting && showCamera
+                    ? "bg-green-500"
+                    : "bg-gray-400"
+                }`}
+              ></div>
+              <span className="text-sm font-medium text-gray-600">
+                {isDetecting && showCamera ? "Monitoreando entorno" : "Visión inactiva"}
+              </span>
             </div>
             <div className="h-4 w-px bg-gray-200"></div>
             <div className="flex items-center space-x-1">
               <Volume2 className="text-gray-400" size={16} />
-              <span className="text-sm font-medium text-gray-600">{Math.round(volume)} dB</span>
+              <span className="text-sm font-medium text-gray-600">
+                {Math.round(volume)} dB
+              </span>
             </div>
           </div>
           <button
@@ -121,38 +184,102 @@ export default function CarView() {
       <div className="flex-1 flex flex-col items-center justify-center p-4 relative">
         {/* Alertas */}
         <div className="absolute top-4 left-0 right-0">
-          {showAlert && (
+          {showAudioAlert && (
             <WarningAlert
-              type={alertType === "Sirena" ? "ambulance" : "police"}
+              type={audioAlertType.toUpperCase()}
               direction={soundDirection}
-              onClose={() => setShowAlert(false)}
+              onClose={() => setShowAudioAlert(false)}
+            />
+          )}
+          {showVisionAlert && showCamera && (
+            <WarningAlert
+              type={visionAlertType.toUpperCase()}
+              onClose={() => {}}
             />
           )}
         </div>
 
         {/* Indicador de dirección del coche */}
         <div className="flex-1 flex items-center justify-center w-full">
-          <CarDirectionIndicator direction={showAlert ? soundDirection : null} />
+          <CarDirectionIndicator
+            direction={showAudioAlert ? soundDirection : null}
+          />
         </div>
 
-        {/* Barra de volumen */}
-        <div className="w-full max-w-md bg-white rounded-lg shadow-sm p-4 mb-4">
-          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                volume > 40 ? "bg-red-500" : "bg-blue-500"
-              }`}
-              style={{ width: `${Math.min(100, (volume / 150) * 100)}%` }}
-            ></div>
+        {/* Cámara flotante */}
+        {showCamera && (
+          <div className="fixed top-24 right-4 z-50">
+            <div className="relative">
+              <div className="w-48 h-36 rounded-lg overflow-hidden shadow-lg">
+                <Webcam
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  width="100%"
+                  height="100%"
+                  className="object-cover"
+                  videoConstraints={{
+                    width: 640,
+                    height: 480,
+                    facingMode: "environment"
+                  }}
+                />
+                {/* Indicador de estado en esquina */}
+                <div
+                  className={`absolute top-2 right-2 h-2 w-2 rounded-full ${getVisionStatusColor()} ${
+                    detectionStatus.status === "processing" ? "animate-pulse" : ""
+                  }`}
+                ></div>
+              </div>
+              
+              {/* Controles */}
+              <div className="absolute -bottom-10 left-0 right-0 flex justify-center space-x-2">
+                <button
+                  onClick={handleToggleCamera}
+                  className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+                  title="Ocultar Cámara"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={toggleDetection}
+                  className={`p-1.5 text-white rounded-full transition ${
+                    isDetecting ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
+                  }`}
+                  title={isDetecting ? "Detener Detección" : "Iniciar Detección"}
+                >
+                  <Power className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Cámara oculta para detección */}
+        {!showCamera && isDetecting && (
+          <div className="fixed top-0 left-0 w-1 h-1 overflow-hidden">
+            <Webcam
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              width="640"
+              height="480"
+              className="absolute top-0 left-0"
+              videoConstraints={{
+                width: 640,
+                height: 480,
+                facingMode: "environment"
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Panel de configuración */}
       {showSettings && (
         <div className="absolute inset-0 bg-white z-50 p-4">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Configuración</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Configuración
+            </h2>
             <button
               onClick={() => setShowSettings(false)}
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -162,6 +289,7 @@ export default function CarView() {
           </div>
 
           <div className="space-y-4">
+            {/* Configuración de Audio */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
                 <h3 className="font-medium text-gray-800">Modo Automático</h3>
@@ -179,6 +307,50 @@ export default function CarView() {
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                     autoMode ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Configuración de Visión */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h3 className="font-medium text-gray-800">Mostrar Cámara</h3>
+                <p className="text-sm text-gray-500">
+                  Activa o desactiva la visualización de la cámara
+                </p>
+              </div>
+              <button
+                onClick={handleToggleCamera}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  showCamera ? "bg-blue-600" : "bg-gray-200"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    showCamera ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h3 className="font-medium text-gray-800">Detección de Visión</h3>
+                <p className="text-sm text-gray-500">
+                  Activa o desactiva la detección de objetos
+                </p>
+              </div>
+              <button
+                onClick={toggleDetection}
+                disabled={!showCamera}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  isDetecting ? "bg-blue-600" : "bg-gray-200"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isDetecting ? "translate-x-6" : "translate-x-1"
                   }`}
                 />
               </button>

@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LocationProvider } from "./context/LocationContext";
 import { DetectionProvider } from "./context/DetectionContext";
 import { AudioProvider } from "./context/AudioContext";
+import { VisionProvider } from "./context/VisionContext";
 import { ROUTES } from "./config/routes";
 
 import Login from "./components/Login/Login";
@@ -57,7 +58,11 @@ const ProtectedProviders = ({ children }) => {
   return (
     <LocationProvider>
       <DetectionProvider>
-        <AudioProvider>{children}</AudioProvider>
+        <AudioProvider>
+          <VisionProvider>
+            {children}
+          </VisionProvider>
+        </AudioProvider>
       </DetectionProvider>
     </LocationProvider>
   );

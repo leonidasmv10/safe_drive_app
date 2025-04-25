@@ -270,7 +270,7 @@ export default function Map() {
       {showAlert && (
         <div className="absolute top-4 left-0 right-0 z-[1000]">
           <WarningAlert
-            type={alertType === "Sirena" ? "ambulance" : "police"}
+            type={alertType.toUpperCase()}
             direction={soundDirection}
             onClose={() => setShowAlert(false)}
           />
