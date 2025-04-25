@@ -10,6 +10,7 @@ export const ROUTES = {
   EDIT_PROFILE: "/edit-profile",
   CHANGE_PASSWORD: "/change-password",
   LANDING: "/landing",
+  VIDEO: "/video",
 };
 
 export const PUBLIC_ROUTES = [

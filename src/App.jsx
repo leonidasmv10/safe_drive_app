@@ -23,6 +23,7 @@ import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
 import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
 import Layout from "./Layout";
 import Landing from "./components/Landing";
+import VisualDetection from "@/components/Video";
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -96,6 +97,16 @@ function App() {
                 <PrivateRoute>
                   <ProtectedProviders>
                     <Map />
+                  </ProtectedProviders>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path={ROUTES.VIDEO}
+              element={
+                <PrivateRoute>
+                  <ProtectedProviders>
+                    <VisualDetection />
                   </ProtectedProviders>
                 </PrivateRoute>
               }
