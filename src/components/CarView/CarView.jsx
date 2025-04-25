@@ -112,11 +112,10 @@ export default function CarView() {
     }
   };
 
-  // Modificar toggleCamera para que detenga la cámara completamente
-  const handleToggleCamera = () => {
-    if (showCamera) {
-      // Si estamos ocultando la cámara, detenemos la detección y la cámara
-      toggleDetection();
+  // Función para manejar la activación/desactivación de la visión
+  const handleVisionToggle = () => {
+    if (isDetecting) {
+      // Si estamos desactivando, detenemos la cámara y la detección
       if (webcamRef.current) {
         const stream = webcamRef.current.video.srcObject;
         if (stream) {
@@ -124,8 +123,13 @@ export default function CarView() {
           tracks.forEach(track => track.stop());
         }
       }
+      toggleDetection();
+      toggleCamera();
+    } else {
+      // Si estamos activando, encendemos la cámara y la detección
+      toggleCamera();
+      toggleDetection();
     }
-    toggleCamera();
   };
 
   return (
@@ -154,13 +158,13 @@ export default function CarView() {
             <div className="flex items-center space-x-2">
               <div
                 className={`w-2 h-2 rounded-full ${
-                  isDetecting && showCamera
+                  isDetecting
                     ? "bg-green-500"
                     : "bg-gray-400"
                 }`}
               ></div>
               <span className="text-sm font-medium text-gray-600">
-                {isDetecting && showCamera ? "Monitoreando entorno" : "Visión inactiva"}
+                {isDetecting ? "Monitoreando entorno" : "Visión inactiva"}
               </span>
             </div>
             <div className="h-4 w-px bg-gray-200"></div>
@@ -191,7 +195,7 @@ export default function CarView() {
               onClose={() => setShowAudioAlert(false)}
             />
           )}
-          {showVisionAlert && showCamera && (
+          {showVisionAlert && isDetecting && (
             <WarningAlert
               type={visionAlertType.toUpperCase()}
               onClose={() => {}}
@@ -207,7 +211,7 @@ export default function CarView() {
         </div>
 
         {/* Cámara flotante */}
-        {showCamera && (
+        {isDetecting && (
           <div className="fixed top-24 right-4 z-50">
             <div className="relative">
               <div className="w-48 h-36 rounded-lg overflow-hidden shadow-lg">
@@ -234,41 +238,14 @@ export default function CarView() {
               {/* Controles */}
               <div className="absolute -bottom-10 left-0 right-0 flex justify-center space-x-2">
                 <button
-                  onClick={handleToggleCamera}
-                  className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
-                  title="Ocultar Cámara"
-                >
-                  <Camera className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={toggleDetection}
-                  className={`p-1.5 text-white rounded-full transition ${
-                    isDetecting ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
-                  }`}
-                  title={isDetecting ? "Detener Detección" : "Iniciar Detección"}
+                  onClick={handleVisionToggle}
+                  className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                  title="Desactivar Visión"
                 >
                   <Power className="h-4 w-4" />
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Cámara oculta para detección */}
-        {!showCamera && isDetecting && (
-          <div className="fixed top-0 left-0 w-1 h-1 overflow-hidden">
-            <Webcam
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              width="640"
-              height="480"
-              className="absolute top-0 left-0"
-              videoConstraints={{
-                width: 640,
-                height: 480,
-                facingMode: "environment"
-              }}
-            />
           </div>
         )}
       </div>
@@ -315,35 +292,13 @@ export default function CarView() {
             {/* Configuración de Visión */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <h3 className="font-medium text-gray-800">Mostrar Cámara</h3>
-                <p className="text-sm text-gray-500">
-                  Activa o desactiva la visualización de la cámara
-                </p>
-              </div>
-              <button
-                onClick={handleToggleCamera}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  showCamera ? "bg-blue-600" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    showCamera ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
                 <h3 className="font-medium text-gray-800">Detección de Visión</h3>
                 <p className="text-sm text-gray-500">
-                  Activa o desactiva la detección de objetos
+                  Activa o desactiva la cámara y detección de objetos
                 </p>
               </div>
               <button
-                onClick={toggleDetection}
-                disabled={!showCamera}
+                onClick={handleVisionToggle}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   isDetecting ? "bg-blue-600" : "bg-gray-200"
                 }`}
