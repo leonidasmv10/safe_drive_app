@@ -4,68 +4,61 @@ import { useAudio } from "@/context/AudioContext";
 import { useVision } from "@/context/VisionContext";
 import Webcam from "react-webcam";
 import WarningAlert from "@/components/shared/WarningAlert";
-
-// Componente del coche con indicadores de dirección
 const CarDirectionIndicator = ({ direction }) => {
   return (
-    <div className="relative w-64 h-64 mx-auto my-8">
-      {/* Indicadores de dirección */}
-      <div
-        className={`absolute inset-0 ${
-          direction === "LEFT"
-            ? "bg-gradient-to-r from-red-500/50 to-transparent animate-pulse"
-            : direction === "RIGHT"
-            ? "bg-gradient-to-l from-red-500/50 to-transparent animate-pulse"
-            : direction === "FRONT"
-            ? "bg-gradient-to-b from-red-500/50 to-transparent animate-pulse"
-            : direction === "REAR"
-            ? "bg-gradient-to-t from-red-500/50 to-transparent animate-pulse"
-            : ""
-        } rounded-full`}
-      ></div>
+    <div className="relative w-96 h-96 mx-auto">
+      {/* Pulsating border/gradient around car when alert is active */}
+      {direction && (
+        <div className="absolute inset-0 rounded-full animate-pulse">
+          {/* This creates a glowing border effect around the car */}
+          <div className="absolute inset-0 rounded-full border-8  shadow-red-xl/30 animate-pulse"></div>
 
-      {/* Coche central */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="relative w-32 h-16 bg-blue-600 rounded-lg transform -rotate-90">
-          {/* Parabrisas */}
-          <div className="absolute top-2 left-4 right-4 h-4 bg-blue-400 rounded"></div>
-          {/* Ruedas */}
-          <div className="absolute -left-1 top-2 w-2 h-6 bg-gray-800 rounded"></div>
-          <div className="absolute -right-1 top-2 w-2 h-6 bg-gray-800 rounded"></div>
-          <div className="absolute -left-1 bottom-2 w-2 h-6 bg-gray-800 rounded"></div>
-          <div className="absolute -right-1 bottom-2 w-2 h-6 bg-gray-800 rounded"></div>
+          {/* Directional gradient overlays */}
+          <div
+          // className={`absolute inset-0 ${
+          //   direction === "LEFT"
+          //     ? "bg-gradient-to-r from-red-500/50 to-transparent"
+          //     : direction === "RIGHT"
+          //     ? "bg-gradient-to-l from-red-500/50 to-transparent"
+          //     : direction === "FRONT"
+          //     ? "bg-gradient-to-b from-red-500/50 to-transparent"
+          //     : direction === "REAR"
+          //     ? "bg-gradient-to-t from-red-500/50 to-transparent"
+          //     : ""
+          // } rounded-full`}
+          ></div>
         </div>
-      </div>
+      )}
 
       {/* Indicadores de texto */}
       <div
-        className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full px-2 py-1 ${
+        className={`absolute left-0 top-1/2 -translate-y-1/2 translate-x-5 px-2 py-1 ${
           direction === "LEFT" ? "text-red-600 font-bold" : "text-gray-400"
         }`}
-      >
-        LEFT
-      </div>
+      ></div>
       <div
-        className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-full px-2 py-1 ${
+        className={`absolute right-0 top-1/2 -translate-y-1/2 -translate-x-5 px-2 py-1 ${
           direction === "RIGHT" ? "text-red-600 font-bold" : "text-gray-400"
         }`}
-      >
-        RIGHT
-      </div>
+      ></div>
       <div
         className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full px-2 py-1 ${
           direction === "FRONT" ? "text-red-600 font-bold" : "text-gray-400"
         }`}
       >
-        FRONT
+        FRONTAL
       </div>
       <div
         className={`absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full px-2 py-1 ${
           direction === "REAR" ? "text-red-600 font-bold" : "text-gray-400"
         }`}
       >
-        REAR
+        TRASERA
       </div>
+      <img
+        src="car.png"
+        className="w-52 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+      />
     </div>
   );
 };
@@ -120,7 +113,7 @@ export default function CarView() {
         const stream = webcamRef.current.video.srcObject;
         if (stream) {
           const tracks = stream.getTracks();
-          tracks.forEach(track => track.stop());
+          tracks.forEach((track) => track.stop());
         }
       }
       toggleDetection();
@@ -158,9 +151,7 @@ export default function CarView() {
             <div className="flex items-center space-x-2">
               <div
                 className={`w-2 h-2 rounded-full ${
-                  isDetecting
-                    ? "bg-green-500"
-                    : "bg-gray-400"
+                  isDetecting ? "bg-green-500" : "bg-gray-400"
                 }`}
               ></div>
               <span className="text-sm font-medium text-gray-600">
@@ -224,17 +215,19 @@ export default function CarView() {
                   videoConstraints={{
                     width: 640,
                     height: 480,
-                    facingMode: "environment"
+                    facingMode: "environment",
                   }}
                 />
                 {/* Indicador de estado en esquina */}
                 <div
                   className={`absolute top-2 right-2 h-2 w-2 rounded-full ${getVisionStatusColor()} ${
-                    detectionStatus.status === "processing" ? "animate-pulse" : ""
+                    detectionStatus.status === "processing"
+                      ? "animate-pulse"
+                      : ""
                   }`}
                 ></div>
               </div>
-              
+
               {/* Controles */}
               <div className="absolute -bottom-10 left-0 right-0 flex justify-center space-x-2">
                 <button
@@ -292,7 +285,9 @@ export default function CarView() {
             {/* Configuración de Visión */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <h3 className="font-medium text-gray-800">Detección de Visión</h3>
+                <h3 className="font-medium text-gray-800">
+                  Detección de Visión
+                </h3>
                 <p className="text-sm text-gray-500">
                   Activa o desactiva la cámara y detección de objetos
                 </p>
