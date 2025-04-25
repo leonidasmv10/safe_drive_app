@@ -10,7 +10,8 @@ export const ROUTES = {
   EDIT_PROFILE: "/edit-profile",
   CHANGE_PASSWORD: "/change-password",
   LANDING: "/landing",
-  VIDEO: "/video",
+  DAILY_SUMMARY: "/daily-summary",
+  CHAT: "/chat",
 };
 
 export const PUBLIC_ROUTES = [
@@ -26,6 +27,7 @@ export const PRIVATE_ROUTES = [
   ROUTES.SETTINGS,
   ROUTES.EDIT_PROFILE,
   ROUTES.CHANGE_PASSWORD,
+  ROUTES.DAILY_SUMMARY,
   ROUTES.TEST,
   ROUTES.TEST_AUDIO,
 ];

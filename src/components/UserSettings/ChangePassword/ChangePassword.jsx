@@ -4,7 +4,7 @@ import "@/components/UserSettings/userSettings.css";
 
 export default function ChangePassword() {
   const navigate = useNavigate();
-  const API_URL = "http://localhost:8000";
+  const API_URL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
 
   const [saving, setSaving] = useState(false);

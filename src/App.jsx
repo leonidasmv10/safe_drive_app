@@ -24,7 +24,8 @@ import EditProfile from "@/components/UserSettings/EditProfile/EditProfile";
 import ChangePassword from "@/components/UserSettings/ChangePassword/ChangePassword";
 import Layout from "./Layout";
 import Landing from "./components/Landing";
-import VisualDetection from "@/components/Video";
+import DailySummary from "@/components/DailySummary/DailySummary";
+import Chat from "./components/Chat";
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -59,9 +60,7 @@ const ProtectedProviders = ({ children }) => {
     <LocationProvider>
       <DetectionProvider>
         <AudioProvider>
-          <VisionProvider>
-            {children}
-          </VisionProvider>
+          <VisionProvider>{children}</VisionProvider>
         </AudioProvider>
       </DetectionProvider>
     </LocationProvider>
@@ -79,6 +78,14 @@ function App() {
             element={
               <PublicRoute>
                 <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path={ROUTES.CHAT}
+            element={
+              <PublicRoute>
+                <Chat />
               </PublicRoute>
             }
           />
@@ -106,16 +113,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            <Route
-              path={ROUTES.VIDEO}
-              element={
-                <PrivateRoute>
-                  <ProtectedProviders>
-                    <VisualDetection />
-                  </ProtectedProviders>
-                </PrivateRoute>
-              }
-            />
+
             <Route
               path={ROUTES.CAR_VIEW}
               element={
@@ -149,6 +147,16 @@ function App() {
               element={
                 <PrivateRoute>
                   <ChangePassword />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path={ROUTES.DAILY_SUMMARY}
+              element={
+                <PrivateRoute>
+                  <ProtectedProviders>
+                    <DailySummary />
+                  </ProtectedProviders>
                 </PrivateRoute>
               }
             />
