@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import { useLocation } from "./LocationContext";
 import { useDetection } from "./DetectionContext";
 
@@ -9,7 +15,10 @@ const DURACION_ALERTA = 5000; // 5 segundos
 export const VisionProvider = ({ children }) => {
   const [isDetecting, setIsDetecting] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [detectionStatus, setDetectionStatus] = useState({ status: "waiting", label: null });
+  const [detectionStatus, setDetectionStatus] = useState({
+    status: "waiting",
+    label: null,
+  });
   const [lastDetection, setLastDetection] = useState(null);
   const [detectionCount, setDetectionCount] = useState(0);
   const [showCamera, setShowCamera] = useState(true);
@@ -42,25 +51,25 @@ export const VisionProvider = ({ children }) => {
       });
 
       const data = await res.json();
-      
+      // console.log(data);
+
       if (data.alert && data.detections[0].label !== "person") {
-        setDetectionStatus({ 
-          status: "alert", 
-          label: data.detections[0].label 
+        let label = data.detections[0].label;
+        switch (label) {
+          case "person-on-scooter-side-view":
+            setAlertType("Persona en patinete");
+            break;
+          default:
+            break;
+        }
+
+        setDetectionStatus({
+          status: "alert",
+          label: label,
         });
         setLastDetection(data.detections);
-        setDetectionCount(prev => prev + 1);
-        setAlertType(data.detections[0].label);
+        setDetectionCount((prev) => prev + 1);
         setShowAlert(true);
-
-        // Add detection to the map
-        if (location?.latitude && location?.longitude) {
-          addDetection({
-            position: [location.latitude, location.longitude],
-            type: "warning",
-            description: data.detections[0].label,
-          });
-        }
 
         // Clear any existing alert timer
         if (alertTimerRef.current) {
@@ -111,11 +120,11 @@ export const VisionProvider = ({ children }) => {
   }, [isDetecting]);
 
   const toggleCamera = () => {
-    setShowCamera(prev => !prev);
+    setShowCamera((prev) => !prev);
   };
 
   const toggleDetection = () => {
-    setIsDetecting(prev => !prev);
+    setIsDetecting((prev) => !prev);
   };
 
   const value = {
@@ -133,9 +142,7 @@ export const VisionProvider = ({ children }) => {
   };
 
   return (
-    <VisionContext.Provider value={value}>
-      {children}
-    </VisionContext.Provider>
+    <VisionContext.Provider value={value}>{children}</VisionContext.Provider>
   );
 };
 
@@ -145,4 +152,4 @@ export const useVision = () => {
     throw new Error("useVision debe usarse dentro de un VisionProvider");
   }
   return context;
-}; 
+};
