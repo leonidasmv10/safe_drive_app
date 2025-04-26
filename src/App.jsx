@@ -154,9 +154,7 @@ function App() {
               path={ROUTES.DAILY_SUMMARY}
               element={
                 <PrivateRoute>
-                  <ProtectedProviders>
-                    <DailySummary />
-                  </ProtectedProviders>
+                  <DailySummary />
                 </PrivateRoute>
               }
             />
