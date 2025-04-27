@@ -8,6 +8,10 @@ import {
   Info,
   Phone,
   MapPin,
+  Volume2,
+  Eye,
+  FileText,
+  Bell,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -55,15 +59,28 @@ export default function SafeDriveFinalLanding() {
   const generateGeminiResponse = async (userMessage) => {
     setIsLoading(true);
     try {
-      const systemPrompt = `Eres un asistente de SafeDrive, una app de seguridad para conductores que usa IA. 
-Responde preguntas sobre la app, seguridad vial y tecnología de conducción. 
-Da respuestas breves y útiles usando formato Markdown para mejorar la legibilidad.
-Usa:
-- **negrita** para enfatizar
-- *cursiva* para detalles
-- Listas con - o 1. para pasos o características
-- \`código\` para comandos o términos técnicos
-- > para citas o consejos importantes`;
+      const systemPrompt = `Eres el asistente virtual oficial de SafeDrive, una aplicación especializada para conductores con discapacidad auditiva que utiliza inteligencia artificial para mejorar su seguridad al volante.
+
+TU FUNCIÓN: Proporcionar información precisa sobre SafeDrive, responder preguntas y ofrecer ayuda relacionada exclusivamente con el producto.
+
+SOBRE SAFEDRIVE:
+- Aplicación que detecta sonidos críticos (sirenas, claxons) y los convierte en alertas visuales/táctiles para conductores con discapacidad auditiva
+- Incluye análisis visual del entorno a través de IA (escucha y mira por el conductor)
+- Genera resúmenes diarios de conducción con recomendaciones personalizadas
+- Presenta un mapa colaborativo donde los sonidos críticos detectados aparecen durante un minuto para alertar a otros conductores
+- Desarrollado por un equipo de 4 programadores durante un bootcamp de Python e IA de la Fundación Esplai
+
+AL RESPONDER:
+- Sé conciso, amable y útil
+- Usa **negrita** para destacar información importante
+- Emplea *cursiva* para detalles secundarios
+- Utiliza listas para explicar características o pasos
+- Incluye emojis relevantes para hacer tus respuestas más accesibles
+- Si te preguntan sobre características técnicas que no conoces, menciona que "esa información está en desarrollo"
+- NUNCA inventes información que no esté aquí
+- SIEMPRE enfoca tus respuestas en cómo SafeDrive ayuda a conductores con discapacidad auditiva
+
+IMPORTANTE: Eres un chatbot específico de producto. NO ofrezcas servicios o información no relacionados con SafeDrive. Si te preguntan sobre temas completamente ajenos, redirige la conversación amablemente hacia SafeDrive.`;
 
       const result = await modelRef.current.generateContent({
         contents: [
@@ -146,6 +163,12 @@ Usa:
               >
                 <MapPin size={18} className="mr-1" /> Características
               </a>
+              <a
+                href="#accesibility"
+                className="flex items-center bg-purple-100 text-purple-700 hover:bg-purple-200 transition px-3 py-1 rounded-full"
+              >
+                <Volume2 size={18} className="mr-1" /> Accesibilidad
+              </a>
             </nav>
 
             {/* Mobile Navigation Button */}
@@ -185,11 +208,11 @@ Usa:
               <MapPin size={18} className="mr-2" /> Características
             </a>
             <a
-              href="#contact"
-              className="flex items-center text-gray-700 hover:text-purple-600 transition block px-3 py-2 rounded-md text-base font-medium"
+              href="#accesibility"
+              className="flex items-center bg-purple-100 text-purple-700 hover:bg-purple-200 transition block px-3 py-2 rounded-md text-base font-medium"
               onClick={() => setIsNavOpen(false)}
             >
-              <Phone size={18} className="mr-2" /> Contacto
+              <Volume2 size={18} className="mr-2" /> Accesibilidad
             </a>
           </div>
         </div>
@@ -447,13 +470,19 @@ Usa:
                 </h1>
               </div>
               <h2 className="text-2xl md:text-3xl font-semibold text-purple-600 mb-4">
-                Conduce Consciente. Mantente Seguro.
+                Escuchamos y vemos por ti en la carretera
               </h2>
               <p className="text-lg text-gray-600 mb-8 max-w-lg">
-                Asistente de conducción inteligente que mejora tu conciencia del
-                entorno.
+                Asistente de conducción inteligente para personas con
+                discapacidad auditiva. Mejoramos tu seguridad con IA que detecta
+                sonidos críticos y analiza el entorno visual.
               </p>
-              <button className="bg-purple-500 text-white px-8 py-3 rounded-full font-medium hover:bg-purple-600 transition flex items-center justify-center shadow-lg hover:shadow-xl">
+              <button
+                className="bg-purple-500 text-white px-8 py-3 rounded-full font-medium hover:bg-purple-600 transition flex items-center justify-center shadow-lg hover:shadow-xl"
+                onClick={() =>
+                  (window.location.href = "https://safedrivev.netlify.app/")
+                }
+              >
                 Descubre SafeDrive <ChevronRight className="ml-2" size={20} />
               </button>
             </div>
@@ -478,7 +507,7 @@ Usa:
                     <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                       <img
                         src="run.png"
-                        alt="Agrega tu captura de pantalla aquí"
+                        alt="SafeDrive App en funcionamiento"
                         className="w-full h-auto"
                       />
                     </div>
@@ -515,9 +544,19 @@ Usa:
               Sobre Nosotros
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Estamos dedicados a hacer tu experiencia de conducción más segura
-              con tecnología de vanguardia.
+              Somos estudiantes de un bootcamp de la Fundación Esplai de Python
+              e Inteligencia Artificial, y desarrollamos este proyecto como
+              parte de nuestro trabajo final.
             </p>
+            <div className="flex items-center justify-center mt-6 space-x-3">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+              </span>
+              <p className="text-base text-purple-700 font-medium">
+                Proyecto actualmente en desarrollo
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -529,8 +568,9 @@ Usa:
                   Nuestra Misión
                 </h3>
                 <p className="text-gray-600">
-                  Crear un entorno de conducción más seguro a través de
-                  tecnología innovadora y sistemas inteligentes.
+                  Eliminar barreras en la conducción para personas con
+                  discapacidad auditiva a través de tecnología de IA accesible e
+                  innovadora.
                 </p>
               </div>
             </div>
@@ -543,8 +583,8 @@ Usa:
                   Nuestro Equipo
                 </h3>
                 <p className="text-gray-600">
-                  Un grupo apasionado de ingenieros y diseñadores comprometidos
-                  con la innovación en seguridad vial.
+                  Un grupo de 4 programadores apasionados por la accesibilidad y
+                  la tecnología como herramienta de inclusión social.
                 </p>
               </div>
             </div>
@@ -557,8 +597,9 @@ Usa:
                   Tecnología
                 </h3>
                 <p className="text-gray-600">
-                  Utilizando IA y aprendizaje automático para predecir y
-                  prevenir posibles peligros al conducir.
+                  Utilizamos IA avanzada para la detección de sonidos críticos y
+                  análisis visual, mejorando la conciencia situacional durante
+                  la conducción.
                 </p>
               </div>
             </div>
@@ -571,8 +612,9 @@ Usa:
                   Nuestro Impacto
                 </h3>
                 <p className="text-gray-600">
-                  Ayudando a miles de conductores a mantenerse alertas y seguros
-                  en las carreteras todos los días.
+                  Promovemos la inclusión y autonomía, facilitando que las
+                  personas con discapacidad auditiva conduzcan con mayor
+                  seguridad y confianza.
                 </p>
               </div>
             </div>
@@ -588,97 +630,178 @@ Usa:
               Características Principales
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Descubre la tecnología que hace de SafeDrive la solución líder en
-              seguridad de conducción.
+              Descubre cómo SafeDrive transforma la experiencia de conducción
+              para personas con discapacidad auditiva mediante tecnología de IA
+              avanzada.
             </p>
+            <div className="mt-6 inline-block bg-purple-100 px-4 py-2 rounded-lg">
+              <p className="text-sm text-purple-800 font-medium">
+                Desarrollado con tecnologías de punta en IA y programación
+                Python
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="bg-purple-50 rounded-lg p-6 text-center hover:bg-purple-100 transition-colors duration-300">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
+                <Volume2 className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Detección de Peligros
+                Detección de Sonidos Críticos
               </h3>
               <p className="text-gray-600">
-                Sensores avanzados escanean el entorno para identificar peligros
-                potenciales antes de que se conviertan en amenazas.
+                Identifica sirenas, claxons y otros sonidos importantes en la
+                carretera, proporcionando alertas visuales o táctiles
+                inmediatas.
               </p>
             </div>
 
             {/* Feature 2 */}
             <div className="bg-purple-50 rounded-lg p-6 text-center hover:bg-purple-100 transition-colors duration-300">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+                <Eye className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Alertas en Tiempo Real
+                Análisis Visual del Entorno
               </h3>
               <p className="text-gray-600">
-                Notificaciones inmediatas te mantienen informado sobre cambios
-                en las condiciones de la carretera y riesgos potenciales.
+                Monitoriza la carretera y el tráfico, detectando situaciones de
+                riesgo y complementando las capacidades del conductor.
               </p>
             </div>
 
             {/* Feature 3 */}
             <div className="bg-purple-50 rounded-lg p-6 text-center hover:bg-purple-100 transition-colors duration-300">
               <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-8 h-8 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
+                <MapPin className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">
-                Análisis de Conducción
+                Mapa Colaborativo de Alertas
               </h3>
               <p className="text-gray-600">
-                Informes completos sobre tus hábitos de conducción te ayudan a
-                convertirte en un conductor más seguro y consciente.
+                Comparte la ubicación de sirenas y claxons detectados con otros
+                usuarios durante un minuto, creando un sistema de alerta
+                comunitario.
               </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+            {/* Feature 4 */}
+            <div className="bg-purple-50 rounded-lg p-6 text-center hover:bg-purple-100 transition-colors duration-300">
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Resúmenes Diarios de Conducción
+              </h3>
+              <p className="text-gray-600">
+                Recibe análisis personalizados de tus rutas con recomendaciones
+                de seguridad basadas en tu estilo de conducción y situaciones
+                encontradas.
+              </p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="bg-purple-50 rounded-lg p-6 text-center hover:bg-purple-100 transition-colors duration-300">
+              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Asistente Virtual Inteligente
+              </h3>
+              <p className="text-gray-600">
+                Un asistente de IA que responde tus preguntas sobre seguridad
+                vial, te proporciona consejos personalizados y aprende de tus
+                hábitos.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sección de Accesibilidad */}
+      <section id="accesibility" className="py-16 bg-purple-50">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+              Accesibilidad
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              SafeDrive está diseñado específicamente para usuarios con
+              discapacidad auditiva, incorporando características que mejoran la
+              seguridad y autonomía durante la conducción.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="p-8">
+                <h3 className="text-xl font-bold text-purple-600 mb-4">
+                  Compromiso con la inclusión
+                </h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center mt-1">
+                      <span className="text-purple-600 text-sm font-bold">
+                        ✓
+                      </span>
+                    </div>
+                    <p className="ml-3 text-gray-600">
+                      Interfaz visual intuitiva con alertas claras y
+                      contrastantes
+                    </p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center mt-1">
+                      <span className="text-purple-600 text-sm font-bold">
+                        ✓
+                      </span>
+                    </div>
+                    <p className="ml-3 text-gray-600">
+                      Retroalimentación táctil para notificaciones de sonidos
+                      críticos
+                    </p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center mt-1">
+                      <span className="text-purple-600 text-sm font-bold">
+                        ✓
+                      </span>
+                    </div>
+                    <p className="ml-3 text-gray-600">
+                      Sistema de alertas comunitarias para aumentar la
+                      conciencia situacional
+                    </p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center mt-1">
+                      <span className="text-purple-600 text-sm font-bold">
+                        ✓
+                      </span>
+                    </div>
+                    <p className="ml-3 text-gray-600">
+                      Chatbot integrado con soporte para consultas y ayuda
+                      inmediata
+                    </p>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-purple-600 p-8 text-white flex items-center">
+                <div>
+                  <h3 className="text-xl font-bold mb-4">
+                    Desarrollado con la comunidad
+                  </h3>
+                  <p className="mb-4">
+                    Nuestro proyecto se basa en el análisis de las necesidades
+                    de las personas con discapacidad auditiva, investigamos
+                    soluciones accesibles y aplicamos tecnología de IA para
+                    mejorar su experiencia de conducción.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -691,7 +814,7 @@ Usa:
             <div>
               <h3 className="text-xl font-bold mb-4">SafeDrive</h3>
               <p className="text-gray-400">
-                Conduce Consciente. Mantente Seguro.
+                Escuchamos y vemos por ti en la carretera.
               </p>
             </div>
 
@@ -720,6 +843,14 @@ Usa:
                     className="text-gray-400 hover:text-white transition"
                   >
                     Características
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#accesibility"
+                    className="text-gray-400 hover:text-white transition"
+                  >
+                    Accesibilidad
                   </a>
                 </li>
               </ul>
@@ -833,9 +964,7 @@ Usa:
           </div>
           <div>
             <h3 className="font-bold">Asistente SafeDrive</h3>
-            <p className="text-xs text-purple-100">
-              Potenciado por IA
-            </p>
+            <p className="text-xs text-purple-100">Chatbot</p>
           </div>
         </div>
 
