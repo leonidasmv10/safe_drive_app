@@ -964,7 +964,7 @@ IMPORTANTE: Eres un chatbot específico de producto. NO ofrezcas servicios o inf
           </div>
           <div>
             <h3 className="font-bold">Asistente SafeDrive</h3>
-            <p className="text-xs text-purple-100">Chatbot</p>
+            <p className="text-xs text-purple-100">En linea</p>
           </div>
         </div>
 
